@@ -5,18 +5,18 @@ export const LoadingScreen = () => {
   const [progress, setProgress] = useState(60); // Start even higher
 
   useEffect(() => {
-    // Super aggressive progress - complete in 400ms
+    // Even faster progress - complete in 300ms
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) return 100;
-        return prev + 30; // Much larger jumps
+        return prev + 40; // Bigger jumps
       });
-    }, 50); // Fastest possible interval
+    }, 30); // Ultra-fast interval
 
     // Force complete after minimal time
     const timeout = setTimeout(() => {
       setProgress(100);
-    }, 400); // Ultra-fast completion
+    }, 300); // Even faster completion
 
     return () => {
       clearInterval(interval);
