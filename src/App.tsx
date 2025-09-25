@@ -66,50 +66,79 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   useMaxPerformance();
 
   useEffect(() => {
+    let mounted = true;
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          } catch (error) {
+            console.error('Profile fetch error:', error);
+          }
+        } else {
+          if (mounted) {
+            setUserProfile(null);
+          }
+        }
+      }
+    );
+
+    // Get initial session and set loading to false after
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('user_id', session.user.id)
             .maybeSingle();
           
-          setUserProfile(profile);
-        } else {
-          setUserProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle()
-          .then(({ data: profile }) => {
+          if (mounted) {
             setUserProfile(profile);
-            setIsLoading(false);
-          });
-      } else {
-        setIsLoading(false);
+          }
+        } else {
+          if (mounted) {
+            setUserProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        // Always set loading to false after initialization
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
