@@ -1,4 +1,4 @@
-import { Bell, User, GraduationCap } from "lucide-react";
+import { Bell, User, GraduationCap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,12 @@ export const DashboardHeader = ({
             <Button variant="outline" size="sm">
               <GraduationCap className="h-4 w-4 mr-2" />
               Teacher Portal
+            </Button>
+          </Link>
+          <Link to="/admin">
+            <Button variant="outline" size="sm" className="text-success border-success hover:bg-success hover:text-success-foreground">
+              <Shield className="h-4 w-4 mr-2" />
+              Admin Portal
             </Button>
           </Link>
           <Button variant="ghost" size="sm" className="relative">
