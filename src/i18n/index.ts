@@ -147,6 +147,65 @@ const kn = {
     "forgotPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?",
     "or": "ಅಥವಾ",
     "loginWithOTP": "OTP ಯೊಂದಿಗೆ ಲಾಗಿನ್ ಮಾಡಿ"
+  },
+  "dashboard": {
+    "overview": "ಅವಲೋಕನ",
+    "quickStats": "ತ್ವರಿತ ಅಂಕಿಅಂಶಗಳು",
+    "recentActivity": "ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ",
+    "announcements": "ಪ್ರಕಟಣೆಗಳು",
+    "notifications": "ಸೂಚನೆಗಳು"
+  },
+  "student": {
+    "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+    "studentName": "ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು",
+    "rollNumber": "ರೋಲ್ ಸಂಖ್ಯೆ",
+    "class": "ತರಗತಿ",
+    "section": "ವಿಭಾಗ",
+    "attendance": "ಹಾಜರಾತಿ",
+    "grades": "ಗ್ರೇಡ್‌ಗಳು",
+    "performance": "ಕಾರ್ಯಕ್ಷಮತೆ"
+  },
+  "teacher": {
+    "teachers": "ಶಿಕ್ಷಕರು",
+    "subjects": "ವಿಷಯಗಳು",
+    "classes": "ತರಗತಿಗಳು",
+    "lessons": "ಪಾಠಗಳು",
+    "assignments": "ಕಾರ್ಯಯೋಜನೆಗಳು",
+    "examinations": "ಪರೀಕ್ಷೆಗಳು"
+  },
+  "finance": {
+    "fees": "ಶುಲ್ಕಗಳು",
+    "payments": "ಪಾವತಿಗಳು",
+    "expenses": "ವೆಚ್ಚಗಳು",
+    "revenue": "ಆದಾಯ",
+    "outstanding": "ಬಾಕಿ",
+    "reports": "ಹಣಕಾಸು ವರದಿಗಳು",
+    "analytics": "ಹಣಕಾಸು ವಿಶ್ಲೇಷಣೆ",
+    "paymentMethods": "ಪಾವತಿ ವಿಧಾನಗಳು",
+    "dueDate": "ನಿಗದಿತ ದಿನಾಂಕ",
+    "amount": "ಮೊತ್ತ",
+    "receipt": "ರಸೀದಿ"
+  },
+  "transport": {
+    "buses": "ಬಸ್‌ಗಳು",
+    "routes": "ಮಾರ್ಗಗಳು",
+    "drivers": "ಚಾಲಕರು",
+    "tracking": "ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್",
+    "location": "ಸ್ಥಳ",
+    "eta": "ಅಂದಾಜು ಸಮಯ",
+    "emergency": "ತುರ್ತು ಸ್ಥಿತಿ",
+    "maintenance": "ನಿರ್ವಹಣೆ"
+  },
+  "communication": {
+    "messages": "ಸಂದೇಶಗಳು",
+    "announcements": "ಪ್ರಕಟಣೆಗಳು",
+    "notifications": "ಸೂಚನೆಗಳು",
+    "circulars": "ಪರಿಪತ್ರಗಳು",
+    "broadcast": "ಪ್ರಸಾರ",
+    "sendMessage": "ಸಂದೇಶ ಕಳುಹಿಸಿ",
+    "recipient": "ಸ್ವೀಕರಿಸುವವರು",
+    "subject": "ವಿಷಯ",
+    "message": "ಸಂದೇಶ"
   }
 };
 
