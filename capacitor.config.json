@@ -1,0 +1,17 @@
+{
+  "appId": "app.lovable.cbb89513151e4a2ca243a2803b636f15",
+  "appName": "commu-school",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://cbb89513-151e-4a2c-a243-a2803b636f15.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#488AFF",
+      "sound": "beep.wav"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Bell, User, GraduationCap, Shield, Wallet } from "lucide-react";
+import { Bell, User, GraduationCap, Shield, Wallet, Bus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,12 @@ export const DashboardHeader = ({
             <Button variant="outline" size="sm" className="text-warning border-warning hover:bg-warning hover:text-warning-foreground">
               <Wallet className="h-4 w-4 mr-2" />
               Finance Portal
+            </Button>
+          </Link>
+          <Link to="/driver">
+            <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
+              <Bus className="h-4 w-4 mr-2" />
+              Driver Portal
             </Button>
           </Link>
           <Button variant="ghost" size="sm" className="relative">
