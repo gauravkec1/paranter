@@ -1,0 +1,52 @@
+import { Bell, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+
+interface DashboardHeaderProps {
+  studentName: string;
+  parentName: string;
+  notificationCount?: number;
+}
+
+export const DashboardHeader = ({ 
+  studentName, 
+  parentName, 
+  notificationCount = 0 
+}: DashboardHeaderProps) => {
+  return (
+    <header className="bg-card border-b border-card-border sticky top-0 z-50">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src="/api/placeholder/40/40" alt={parentName} />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {parentName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Dashboard</h2>
+            <p className="text-sm text-muted-foreground">{studentName}'s Progress</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell className="h-5 w-5" />
+            {notificationCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs notification-badge"
+              >
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </Badge>
+            )}
+          </Button>
+          <Button variant="ghost" size="sm">
+            <User className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+};
