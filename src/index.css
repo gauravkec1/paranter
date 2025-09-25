@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Performance optimizations */
+/* Ultra-fast performance optimizations */
 * {
   box-sizing: border-box;
 }
@@ -11,26 +11,30 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-display: swap;
 }
 
 body {
   text-rendering: optimizeLegibility;
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
 }
 
-/* Smooth transitions for all interactive elements */
+/* Ultra-fast transitions */
 button, input, select, textarea, .card, .dialog {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Enhanced scroll performance */
+/* Optimized scrolling */
 .scroll-smooth {
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Preload critical fonts */
-@font-face {
-  font-family: 'Inter';
-  font-display: swap;
+/* Instant visual feedback */
+.loading-instant {
+  animation: fade-in 0.1s ease-out;
 }
 
 /* School-Parent Connect Design System */
