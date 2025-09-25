@@ -5,7 +5,7 @@ import { Bell, User, GraduationCap, Shield, DollarSign, Car, Menu, LogOut } from
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ProfileManagement } from "@/components/ProfileManagement";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "../App";
 import { toast } from 'sonner';
 import {
   DropdownMenu,
