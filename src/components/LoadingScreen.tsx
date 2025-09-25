@@ -2,22 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Building } from 'lucide-react';
 
 export const LoadingScreen = () => {
-  const [progress, setProgress] = useState(20); // Start with higher initial progress
+  const [progress, setProgress] = useState(60); // Start even higher
 
   useEffect(() => {
-    // Aggressive progress updates for faster perceived loading
+    // Super aggressive progress - complete in 400ms
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) return 100;
-        // Much faster progress increments
-        return prev + Math.random() * 25 + 10;
+        return prev + 30; // Much larger jumps
       });
-    }, 80); // Faster interval
+    }, 50); // Fastest possible interval
 
-    // Auto-complete after short duration
+    // Force complete after minimal time
     const timeout = setTimeout(() => {
       setProgress(100);
-    }, 800); // Much shorter total loading time
+    }, 400); // Ultra-fast completion
 
     return () => {
       clearInterval(interval);
@@ -26,42 +25,27 @@ export const LoadingScreen = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background-secondary to-muted/20 flex items-center justify-center">
-      <div className="text-center space-y-6 animate-fade-in">
-        {/* Lightweight Logo Animation */}
-        <div className="relative">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary-glow rounded-xl shadow-lg flex items-center justify-center">
-            <Building className="h-8 w-8 text-primary-foreground" />
-          </div>
-          {/* Removed heavy ping animation for speed */}
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center space-y-4">
+        {/* Minimal Logo */}
+        <div className="w-12 h-12 mx-auto bg-primary rounded-lg flex items-center justify-center">
+          <Building className="h-6 w-6 text-primary-foreground" />
         </div>
 
-        {/* Streamlined Title */}
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground">
-            School Connect
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Ready in {Math.max(0, Math.round((100 - progress) / 50))}s
-          </p>
+        {/* Minimal Text */}
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">School Connect</h1>
+          <p className="text-xs text-muted-foreground">Loading...</p>
         </div>
 
-        {/* Ultra-fast Progress Bar */}
-        <div className="w-64 mx-auto space-y-1">
-          <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+        {/* Ultra-minimal Progress */}
+        <div className="w-48 mx-auto">
+          <div className="h-1 bg-muted rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-primary to-primary-glow rounded-full transition-all duration-150 ease-out"
+              className="h-full bg-primary rounded-full transition-all duration-100"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <div className="text-xs text-muted-foreground/70 text-center">
-            {Math.round(Math.min(progress, 100))}%
-          </div>
-        </div>
-
-        {/* Simplified loading indicator */}
-        <div className="flex justify-center">
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
         </div>
       </div>
     </div>

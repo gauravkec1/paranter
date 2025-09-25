@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePreloadComponents, useOptimizedRendering } from "@/hooks/usePerformance";
+import { useInstantPreload, useMaxPerformance } from "@/hooks/useMaxPerformance";
 
 // Lazy load dashboard components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -59,6 +60,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Maximum performance optimizations
+  useInstantPreload();
+  useMaxPerformance();
 
   useEffect(() => {
     // Set up auth state listener

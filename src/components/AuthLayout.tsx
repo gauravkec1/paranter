@@ -219,23 +219,22 @@ export const AuthLayout = () => {
             {roles.map((role, index) => (
               <Card
                 key={role.id}
-                className="cursor-pointer transition-all duration-500 border-2 hover:shadow-2xl hover:scale-105 border-border hover:border-primary/50 bg-gradient-to-br from-card to-background/50 backdrop-blur-sm animate-fade-in group"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="cursor-pointer transition-opacity duration-150 border hover:shadow-lg border-border hover:border-primary/50 bg-card"
                 onClick={() => handleRoleSelect(role.id)}
               >
                 <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                    <role.icon className="h-8 w-8 text-white" />
+                  <div className={`w-12 h-12 mx-auto mb-3 rounded-lg ${role.color} flex items-center justify-center`}>
+                    <role.icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">{role.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{role.description}</p>
-                  <div className="mt-3">
+                  <h3 className="font-medium text-foreground mb-1 text-sm">{role.title}</h3>
+                  <p className="text-xs text-muted-foreground">{role.description}</p>
+                  <div className="mt-2">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                      className="text-xs h-7"
                     >
-                      Access Portal
+                      Access
                     </Button>
                   </div>
                 </CardContent>
