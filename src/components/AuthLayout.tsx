@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -19,7 +20,8 @@ import {
   KeyRound,
   Building,
   Eye,
-  EyeOff
+  EyeOff,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -69,6 +71,7 @@ const roles = [
 export const AuthLayout = () => {
   const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
@@ -77,6 +80,22 @@ export const AuthLayout = () => {
     password: '',
     fullName: ''
   });
+
+  const handleRoleSelect = (roleId: string) => {
+    setSelectedRole(roleId);
+    setShowLoginModal(true);
+    setFormData({ email: '', password: '', fullName: '' });
+    setIsSignup(false);
+    setShowPassword(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowLoginModal(false);
+    setSelectedRole('');
+    setFormData({ email: '', password: '', fullName: '' });
+    setIsSignup(false);
+    setShowPassword(false);
+  };
 
   const handleAuth = async () => {
     if (!selectedRole) {
@@ -116,6 +135,7 @@ export const AuthLayout = () => {
           toast.error(error.message);
         } else {
           toast.success('Account created! Please check your email for verification.');
+          setShowLoginModal(false);
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -127,6 +147,7 @@ export const AuthLayout = () => {
           toast.error(error.message);
         } else {
           toast.success('Login successful!');
+          setShowLoginModal(false);
         }
       }
     } catch (error) {
@@ -170,31 +191,42 @@ export const AuthLayout = () => {
             {roles.map((role) => (
               <Card
                 key={role.id}
-                className={`cursor-pointer transition-all duration-300 border-2 hover:shadow-xl hover:scale-105 ${
-                  selectedRole === role.id
-                    ? 'border-primary shadow-lg ring-2 ring-primary/20'
-                    : 'border-border hover:border-primary/50'
-                } bg-gradient-to-br from-card to-background/50 backdrop-blur-sm`}
-                onClick={() => setSelectedRole(role.id)}
+                className="cursor-pointer transition-all duration-300 border-2 hover:shadow-xl hover:scale-105 border-border hover:border-primary/50 bg-gradient-to-br from-card to-background/50 backdrop-blur-sm animate-fade-in"
+                onClick={() => handleRoleSelect(role.id)}
               >
                 <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg`}>
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg transition-transform hover:scale-110`}>
                     <role.icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">{role.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{role.description}</p>
-                  {selectedRole === role.id && (
-                    <Badge className="mt-3 bg-primary text-primary-foreground">Selected</Badge>
-                  )}
+                  <div className="mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                    >
+                      Login
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Auth Form */}
-          {selectedRole && (
-            <Card className="max-w-md mx-auto shadow-2xl border-0 bg-gradient-to-br from-card to-background/80 backdrop-blur-xl">
-              <CardHeader className="text-center space-y-4">
+          {/* Login Modal */}
+          <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+            <DialogContent className="sm:max-w-md bg-gradient-to-br from-card to-background/80 backdrop-blur-xl border-0 shadow-2xl animate-scale-in">
+              <DialogHeader className="text-center space-y-4 relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-8 w-8 p-0 hover:bg-muted"
+                  onClick={handleCloseModal}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                
                 <div className={`w-20 h-20 mx-auto rounded-xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center shadow-lg`}>
                   {(() => {
                     const role = roles.find(r => r.id === selectedRole);
@@ -205,15 +237,17 @@ export const AuthLayout = () => {
                     return null;
                   })()}
                 </div>
-                <CardTitle className="text-2xl text-foreground">
-                  {roles.find(r => r.id === selectedRole)?.title}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  {isSignup ? 'Create your account' : 'Enter your credentials'}
-                </CardDescription>
-              </CardHeader>
+                
+                <DialogTitle className="text-2xl text-foreground">
+                  {roles.find(r => r.id === selectedRole)?.title?.replace('Portal', 'Login')}
+                </DialogTitle>
+                
+                <p className="text-muted-foreground">
+                  {isSignup ? 'Create your account' : 'Enter your credentials to access your portal'}
+                </p>
+              </DialogHeader>
 
-              <CardContent className="space-y-6">
+              <div className="space-y-6 mt-6">
                 <Tabs value={isSignup ? 'signup' : 'login'} onValueChange={(value) => setIsSignup(value === 'signup')}>
                   <TabsList className="grid w-full grid-cols-2 bg-muted/50">
                     <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -226,13 +260,13 @@ export const AuthLayout = () => {
 
                   <TabsContent value="login" className="space-y-4 mt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-foreground font-medium">
-                        Email
+                      <Label htmlFor="modal-email" className="text-foreground font-medium">
+                        Email / Phone / School ID
                       </Label>
                       <Input
-                        id="email"
-                        type="email"
-                        placeholder="name@school.edu"
+                        id="modal-email"
+                        type="text"
+                        placeholder="Enter email, phone, or school ID"
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                         className="h-12"
@@ -240,12 +274,12 @@ export const AuthLayout = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-foreground font-medium">
+                      <Label htmlFor="modal-password" className="text-foreground font-medium">
                         Password
                       </Label>
                       <div className="relative">
                         <Input
-                          id="password"
+                          id="modal-password"
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Enter your password"
                           value={formData.password}
@@ -267,11 +301,11 @@ export const AuthLayout = () => {
 
                   <TabsContent value="signup" className="space-y-4 mt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-foreground font-medium">
+                      <Label htmlFor="modal-fullName" className="text-foreground font-medium">
                         Full Name
                       </Label>
                       <Input
-                        id="fullName"
+                        id="modal-fullName"
                         type="text"
                         placeholder="Enter your full name"
                         value={formData.fullName}
@@ -281,13 +315,13 @@ export const AuthLayout = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email-signup" className="text-foreground font-medium">
-                        Email
+                      <Label htmlFor="modal-email-signup" className="text-foreground font-medium">
+                        Email / Phone / School ID
                       </Label>
                       <Input
-                        id="email-signup"
-                        type="email"
-                        placeholder="name@school.edu"
+                        id="modal-email-signup"
+                        type="text"
+                        placeholder="Enter email, phone, or school ID"
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                         className="h-12"
@@ -295,12 +329,12 @@ export const AuthLayout = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password-signup" className="text-foreground font-medium">
+                      <Label htmlFor="modal-password-signup" className="text-foreground font-medium">
                         Password
                       </Label>
                       <div className="relative">
                         <Input
-                          id="password-signup"
+                          id="modal-password-signup"
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Create a strong password"
                           value={formData.password}
@@ -330,14 +364,19 @@ export const AuthLayout = () => {
                   {isLoading ? 'Please wait...' : (isSignup ? 'Create Account' : 'Login')}
                 </Button>
 
-                <div className="text-center">
-                  <Button variant="link" className="text-primary hover:text-primary/80">
+                <div className="flex flex-col space-y-3">
+                  <Button variant="outline" className="w-full h-10">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Login with OTP
+                  </Button>
+                  
+                  <Button variant="link" className="text-primary hover:text-primary/80 h-auto p-0">
                     Forgot Password?
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
