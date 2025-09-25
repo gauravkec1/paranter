@@ -1,7 +1,8 @@
-import { Bell, User } from "lucide-react";
+import { Bell, User, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 interface DashboardHeaderProps {
   studentName: string;
@@ -31,6 +32,12 @@ export const DashboardHeader = ({
         </div>
         
         <div className="flex items-center space-x-2">
+          <Link to="/teacher">
+            <Button variant="outline" size="sm">
+              <GraduationCap className="h-4 w-4 mr-2" />
+              Teacher Portal
+            </Button>
+          </Link>
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />
             {notificationCount > 0 && (
