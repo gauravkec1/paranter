@@ -138,7 +138,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
-          status: string
+          status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
           teacher_id: string
           updated_at: string
@@ -149,7 +149,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          status: string
+          status?: Database["public"]["Enums"]["attendance_status"]
           student_id: string
           teacher_id: string
           updated_at?: string
@@ -160,7 +160,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
           student_id?: string
           teacher_id?: string
           updated_at?: string
@@ -232,6 +232,45 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      fees: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          due_date: string
+          fee_type: string
+          id: string
+          paid_date: string | null
+          status: Database["public"]["Enums"]["fee_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          due_date: string
+          fee_type: string
+          id?: string
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          fee_type?: string
+          id?: string
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -417,6 +456,48 @@ export type Database = {
           },
         ]
       }
+      schools: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          phone: string | null
+          school_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          school_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          school_id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           avatar_url: string | null
@@ -467,6 +548,81 @@ export type Database = {
           },
         ]
       }
+      transport_routes: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          end_time: string | null
+          id: string
+          is_active: boolean
+          route_name: string
+          start_time: string | null
+          updated_at: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          route_name: string
+          start_time?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          route_name?: string
+          start_time?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Relationships: []
+      }
+      transport_tracking: {
+        Row: {
+          boarding_time: string | null
+          created_at: string
+          date: string
+          drop_point: string | null
+          drop_time: string | null
+          id: string
+          pickup_point: string | null
+          route_id: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          boarding_time?: string | null
+          created_at?: string
+          date?: string
+          drop_point?: string | null
+          drop_time?: string | null
+          id?: string
+          pickup_point?: string | null
+          route_id: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          boarding_time?: string | null
+          created_at?: string
+          date?: string
+          drop_point?: string | null
+          drop_time?: string | null
+          id?: string
+          pickup_point?: string | null
+          route_id?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -475,6 +631,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      attendance_status: "present" | "absent" | "late" | "half_day"
+      fee_status: "paid" | "pending" | "overdue" | "partial"
+      notification_type:
+        | "attendance"
+        | "academic"
+        | "transport"
+        | "fee"
+        | "event"
+        | "general"
       user_role: "admin" | "teacher" | "parent" | "staff"
     }
     CompositeTypes: {
@@ -603,6 +768,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendance_status: ["present", "absent", "late", "half_day"],
+      fee_status: ["paid", "pending", "overdue", "partial"],
+      notification_type: [
+        "attendance",
+        "academic",
+        "transport",
+        "fee",
+        "event",
+        "general",
+      ],
       user_role: ["admin", "teacher", "parent", "staff"],
     },
   },
