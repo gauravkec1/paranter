@@ -216,14 +216,15 @@ export const AuthLayout = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-12">
-            {roles.map((role) => (
+            {roles.map((role, index) => (
               <Card
                 key={role.id}
-                className="cursor-pointer transition-all duration-300 border-2 hover:shadow-xl hover:scale-105 border-border hover:border-primary/50 bg-gradient-to-br from-card to-background/50 backdrop-blur-sm animate-fade-in"
+                className="cursor-pointer transition-all duration-500 border-2 hover:shadow-2xl hover:scale-105 border-border hover:border-primary/50 bg-gradient-to-br from-card to-background/50 backdrop-blur-sm animate-fade-in group"
+                style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handleRoleSelect(role.id)}
               >
                 <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg transition-transform hover:scale-110`}>
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
                     <role.icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">{role.title}</h3>
@@ -232,9 +233,9 @@ export const AuthLayout = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                      className="border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     >
-                      Login
+                      Access Portal
                     </Button>
                   </div>
                 </CardContent>
