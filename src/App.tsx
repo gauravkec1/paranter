@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthLayout } from "@/components/AuthLayout";
+import AuthLayout from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePreloadComponents, useOptimizedRendering } from "@/hooks/usePerformance";
