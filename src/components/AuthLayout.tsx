@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
+import { authSchema, emailSchema } from '@/lib/validation';
+import { z } from 'zod';
 import { 
   Users, 
   GraduationCap, 
@@ -103,14 +105,27 @@ export const AuthLayout = () => {
       return;
     }
 
-    if (!formData.email || !formData.password) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    // Validate input using Zod schema
+    try {
+      if (isSignup && formData.fullName.trim().length < 1) {
+        toast.error('Please enter your full name');
+        return;
+      }
 
-    if (isSignup && !formData.fullName) {
-      toast.error('Please enter your full name');
-      return;
+      // Validate email format
+      emailSchema.parse(formData.email);
+      
+      // Validate full auth data
+      authSchema.parse({
+        email: formData.email,
+        password: formData.password
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0];
+        toast.error(firstError.message);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -120,37 +135,50 @@ export const AuthLayout = () => {
       
       if (isSignup) {
         const { error } = await supabase.auth.signUp({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              full_name: formData.fullName,
+              full_name: formData.fullName.trim(),
               role: selectedRole
             }
           }
         });
 
         if (error) {
-          toast.error(error.message);
+          // Provide user-friendly error messages
+          const friendlyMessage = error.message.includes('already registered')
+            ? "This email is already registered. Please try logging in instead."
+            : error.message.includes('Password')
+            ? "Password does not meet security requirements. Please use a stronger password."
+            : "Unable to create account. Please try again.";
+          toast.error(friendlyMessage);
         } else {
           toast.success('Account created! Please check your email for verification.');
           setShowLoginModal(false);
+          setFormData({ email: '', password: '', fullName: '' });
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password
         });
 
         if (error) {
-          toast.error(error.message);
+          // Provide generic error message for security
+          const friendlyMessage = error.message.includes('Invalid login credentials')
+            ? "Invalid email or password. Please try again."
+            : "Unable to log in. Please try again.";
+          toast.error(friendlyMessage);
         } else {
           toast.success('Login successful!');
           setShowLoginModal(false);
+          setFormData({ email: '', password: '', fullName: '' });
         }
       }
     } catch (error) {
+      // Don't log sensitive error details for security
       toast.error('An unexpected error occurred');
     } finally {
       setIsLoading(false);

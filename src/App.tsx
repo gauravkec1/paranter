@@ -8,6 +8,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy load dashboard components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -171,15 +172,17 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
