@@ -1,3 +1,4 @@
+import React from 'react';
 import { Building, Loader2 } from 'lucide-react';
 
 export const LoadingScreen = () => {
