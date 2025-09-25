@@ -7,15 +7,17 @@ import en from './locales/en.json';
 import hi from './locales/hi.json';
 import kn from './locales/kn.json';
 
+const resources = {
+  en: { translation: en },
+  hi: { translation: hi },
+  kn: { translation: kn }
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: { translation: en },
-      hi: { translation: hi },
-      kn: { translation: kn }
-    },
+    resources,
     fallbackLng: 'en',
     debug: false,
     interpolation: {
@@ -25,6 +27,9 @@ i18n
       order: ['localStorage', 'browserLanguage'],
       lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage']
+    },
+    react: {
+      useSuspense: false
     }
   });
 
