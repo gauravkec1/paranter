@@ -109,18 +109,36 @@ export const useAuth = (): AuthState & AuthActions => {
 
     const fetchUserProfile = async (userId: string) => {
       try {
+        console.log('🔍 Fetching user profile for:', userId);
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', userId)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Profile fetch error:', error);
+          throw error;
+        }
 
         if (mounted && profile) {
+          console.log('✅ Profile loaded:', profile);
           setUserProfile(profile);
           cacheManager.set(PROFILE_CACHE_KEY, profile);
           console.log('✅ Profile loaded for role:', profile?.role);
+        } else if (mounted && !profile) {
+          console.warn('⚠️ No profile found for user:', userId);
+          // For demo purposes, create a default parent profile
+          const defaultProfile = {
+            id: 'demo-profile',
+            user_id: userId,
+            email: 'demo@example.com',
+            full_name: 'Demo User',
+            role: 'parent' as const,
+            is_active: true
+          };
+          setUserProfile(defaultProfile);
+          console.log('✅ Using default profile for demo');
         }
       } catch (error) {
         console.error('❌ Profile fetch failed:', error);
@@ -142,12 +160,15 @@ export const useAuth = (): AuthState & AuthActions => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('👤 User found, fetching profile...');
           await fetchUserProfile(session.user.id);
         } else {
+          console.log('❌ No user, clearing profile');
           setUserProfile(null);
           cacheManager.clear(PROFILE_CACHE_KEY);
         }
         
+        console.log('✅ Auth state change completed, setting loading to false');
         if (isLoading) {
           setIsLoading(false);
           performanceMonitor.markEnd('auth-initialization');

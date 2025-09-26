@@ -132,15 +132,6 @@ const ParentDashboard = () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <div className="p-4 text-foreground">
-        <h1 className="text-2xl font-bold">ParentDashboard Loading...</h1>
-        <p>Auth Loading: {authLoading ? 'true' : 'false'}</p>
-        <p>Data Loading: {dataLoading ? 'true' : 'false'}</p>
-        <p>Students: {students?.length || 0}</p>
-        <p>User ID: {userProfile?.user_id || 'none'}</p>
-        <p>Error: {error || 'none'}</p>
-      </div>
-      
       <DashboardHeader notificationCount={messages.filter(m => !m.is_read).length} />
       
       <main className="container mx-auto px-4 py-6">

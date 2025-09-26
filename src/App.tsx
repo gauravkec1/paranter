@@ -40,46 +40,56 @@ preloadCriticalResources();
 const AppContent = memo(() => {
   const { session, user, userProfile, isLoading } = useAuth();
   
+  console.log("🏗️ AppContent - Auth state:", { 
+    session: !!session, 
+    user: !!user, 
+    userProfile: !!userProfile, 
+    userRole: userProfile?.role,
+    isLoading 
+  });
+  
   // Maximum performance optimizations
   useInstantPreload();
   useMaxPerformance();
 
   if (isLoading) {
-    console.log('App: Showing loading screen - isLoading:', isLoading);
+    console.log('AppContent: Showing loading screen - isLoading:', isLoading);
     return <LoadingScreen />;
   }
 
   if (!session || !user || !userProfile) {
-    console.log('App: Showing auth layout - session:', !!session, 'user:', !!user, 'userProfile:', !!userProfile);
+    console.log('AppContent: Showing auth layout - session:', !!session, 'user:', !!user, 'userProfile:', !!userProfile);
     return <AuthLayout />;
   }
 
   const getDashboardForRole = () => {
-    console.log('App: Getting dashboard for role:', userProfile?.role);
+    console.log('AppContent: Getting dashboard for role:', userProfile?.role);
     // Ensure complete portal isolation - users only see their role's dashboard
     switch (userProfile.role) {
       case 'parent':
-        console.log('App: Loading ParentDashboard');
+        console.log('AppContent: Loading ParentDashboard');
         return <ParentDashboard />;
       case 'teacher':
-        console.log('App: Loading TeacherDashboard');
+        console.log('AppContent: Loading TeacherDashboard');
         return <TeacherDashboard />;
       case 'admin':
-        console.log('App: Loading AdminDashboard');
+        console.log('AppContent: Loading AdminDashboard');
         return <AdminDashboard />;
       case 'staff':
-        console.log('App: Loading FinancePortal');
+        console.log('AppContent: Loading FinancePortal');
         return <FinancePortal />;
       case 'driver':
-        console.log('App: Loading DriverPortal');
+        console.log('AppContent: Loading DriverPortal');
         return <DriverPortal />;
       default:
-        console.log('App: Loading default ParentDashboard for unknown role:', userProfile.role);
+        console.log('AppContent: Loading default ParentDashboard for unknown role:', userProfile.role);
         // Default to parent portal for any unknown roles
         return <ParentDashboard />;
     }
   };
 
+  console.log('AppContent: Rendering main routes...');
+  
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
@@ -108,11 +118,7 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div style={{ padding: '20px', background: 'white', color: 'black', minHeight: '100vh' }}>
-            <h1>App is loading...</h1>
-            <p>If you see this, the basic app structure is working.</p>
-            <AppContent />
-          </div>
+          <AppContent />
           <Toaster />
           <Sonner />
         </TooltipProvider>
