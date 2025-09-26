@@ -110,32 +110,27 @@ const AuthLayout = () => {
   const handleAuth = async () => {
     if (loading) return;
 
-    // Set up timeout for authentication
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        setLoading(false);
-        toast.error('Server not responding. Please try again.');
-      }
-    }, 5000); // 5 second timeout
-
     try {
       setLoading(true);
 
-      // Basic validation - just check if fields are filled
+      // Basic validation
       if (!email.trim()) {
+        setLoading(false);
         toast.error('Email is required');
         return;
       }
 
       if (!password) {
+        setLoading(false);
         toast.error('Password is required');
         return;
       }
 
-      // For login, just validate basic email format
+      // For login, validate basic email format
       if (authMode === 'login') {
         const emailValidation = emailSchema.safeParse(email.trim());
         if (!emailValidation.success) {
+          setLoading(false);
           toast.error('Please enter a valid email address');
           return;
         }
@@ -143,6 +138,7 @@ const AuthLayout = () => {
 
       if (authMode === 'signup') {
         if (!fullName.trim()) {
+          setLoading(false);
           toast.error('Full name is required');
           return;
         }
@@ -150,11 +146,13 @@ const AuthLayout = () => {
         // For signup, validate email and password strength
         const emailValidation = emailSchema.safeParse(email.trim());
         if (!emailValidation.success) {
+          setLoading(false);
           toast.error(emailValidation.error.issues[0].message);
           return;
         }
 
         if (password.length < 6) {
+          setLoading(false);
           toast.error('Password must be at least 6 characters long');
           return;
         }
@@ -173,6 +171,7 @@ const AuthLayout = () => {
         });
 
         if (signUpError) {
+          setLoading(false);
           if (signUpError.message.includes('already registered')) {
             toast.error('An account with this email already exists. Please try logging in instead.');
           } else if (signUpError.message.includes('Password')) {
@@ -183,6 +182,7 @@ const AuthLayout = () => {
           return;
         }
 
+        setLoading(false);
         toast.success('Account created! Please check your email to verify your account.');
         handleCloseModal();
       } else {
@@ -193,8 +193,8 @@ const AuthLayout = () => {
         });
 
         if (signInError) {
-          if (signInError.message.includes('Invalid login credentials') || 
-              signInError.message.includes('Email not confirmed')) {
+          setLoading(false);
+          if (signInError.message.includes('Invalid login credentials')) {
             toast.error('Invalid email or password. Please check your credentials and try again.');
           } else if (signInError.message.includes('Email not confirmed')) {
             toast.error('Please verify your email address before logging in.');
@@ -205,20 +205,20 @@ const AuthLayout = () => {
         }
 
         if (data?.user) {
-          toast.success('Login successful! Welcome back.');
+          // Don't set loading false here - let the auth state change handle it
+          toast.success('Login successful! Redirecting...');
           handleCloseModal();
-          // The AuthProvider will handle the redirect based on user role
+          // The AuthProvider will handle the redirect and set loading to false
         } else {
+          setLoading(false);
           toast.error('Login failed. Please try again.');
           return;
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
-      toast.error('Connection error. Please check your internet and try again.');
-    } finally {
-      clearTimeout(timeoutId);
       setLoading(false);
+      toast.error('Connection error. Please check your internet and try again.');
     }
   };
 

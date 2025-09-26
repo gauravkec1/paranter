@@ -87,6 +87,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         if (!mounted) return;
         
+        console.log('Auth state change:', event, session?.user?.id);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -100,65 +102,54 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
             
             if (mounted) {
               setUserProfile(profile);
+              setIsLoading(false); // Set loading to false when profile is loaded
             }
           } catch (error) {
             console.error('Profile fetch error:', error);
+            if (mounted) {
+              setIsLoading(false); // Set loading to false even on error
+            }
           }
         } else {
           if (mounted) {
             setUserProfile(null);
+            setIsLoading(false); // Set loading to false when no session
           }
         }
       }
     );
 
-    // Get initial session and set loading to false after - OPTIMIZED
+    // Get initial session
     const initializeAuth = async () => {
       try {
-        // Set immediate timeout to prevent blocking
-        const timeoutPromise = new Promise(resolve => 
-          setTimeout(() => resolve({ data: { session: null } }), 500)
-        );
-        
-        const sessionPromise = supabase.auth.getSession();
-        
-        // Race between session fetch and timeout for instant response
-        const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
-        const session = result?.data?.session;
+        const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
         if (session?.user) {
-          // Defer profile fetch to not block initial render
-          const profilePromise = supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-            
-          // Set loading to false immediately, fetch profile async
-          setIsLoading(false);
+          setSession(session);
+          setUser(session.user);
           
           try {
-            const { data: profile } = await profilePromise;
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
             if (mounted) {
               setUserProfile(profile);
             }
           } catch (profileError) {
             console.error('Profile fetch error:', profileError);
           }
-        } else {
-          if (mounted) {
-            setUserProfile(null);
-            setIsLoading(false);
-          }
+        }
+        
+        if (mounted) {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Always set loading to false even on error
         if (mounted) {
           setIsLoading(false);
         }
