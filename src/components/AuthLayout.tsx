@@ -30,40 +30,40 @@ import { toast } from 'sonner';
 const roles = [
   {
     id: 'parent',
-    title: 'Parent Portal',
-    description: 'Track student progress, fees, and communicate with teachers',
+    title: 'roles.parent',
+    description: 'roles.parentDesc',
     icon: Users,
     color: 'bg-gradient-to-br from-blue-500 to-cyan-500',
     path: '/'
   },
   {
     id: 'teacher',
-    title: 'Teacher Portal',
-    description: 'Manage classes, assignments, and student assessments',
+    title: 'roles.teacher',
+    description: 'roles.teacherDesc',
     icon: GraduationCap,
     color: 'bg-gradient-to-br from-emerald-500 to-teal-500',
     path: '/teacher'
   },
   {
     id: 'admin',
-    title: 'Admin Portal',
-    description: 'Complete school administration and management',
+    title: 'roles.admin',
+    description: 'roles.adminDesc',
     icon: Shield,
     color: 'bg-gradient-to-br from-purple-500 to-violet-500',
     path: '/admin'
   },
   {
     id: 'staff',
-    title: 'Finance Portal',
-    description: 'Financial management, fees, and accounting',
+    title: 'roles.staff',
+    description: 'roles.staffDesc',
     icon: DollarSign,
     color: 'bg-gradient-to-br from-orange-500 to-red-500',
     path: '/finance'
   },
   {
     id: 'driver',
-    title: 'Driver Portal',
-    description: 'Transport management and route tracking',
+    title: 'roles.driver',
+    description: 'roles.driverDesc',
     icon: Car,
     color: 'bg-gradient-to-br from-green-500 to-emerald-500',
     path: '/driver'
@@ -225,8 +225,8 @@ const AuthLayout = () => {
                     <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${role.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                       <IconComponent className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">{role.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{role.description}</p>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">{t(role.title)}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{t(role.description)}</p>
                   </CardContent>
                 </Card>
               );
@@ -251,20 +251,20 @@ const AuthLayout = () => {
             {/* Modal Header */}
             <div className="p-6 pb-4 text-center border-b border-border">
               {selectedRole && (
-                <>
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center`}>
-                    {React.createElement(roles.find(r => r.id === selectedRole)?.icon || Users, {
-                      className: "h-8 w-8 text-white"
-                    })}
-                  </div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
-                    {roles.find(r => r.id === selectedRole)?.title}
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    Enter your credentials to access your portal
-                  </p>
-                </>
-              )}
+                  <>
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center`}>
+                      {React.createElement(roles.find(r => r.id === selectedRole)?.icon || Users, {
+                        className: "h-8 w-8 text-white"
+                      })}
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      {t(roles.find(r => r.id === selectedRole)?.title || 'roles.parent')}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {t('auth.enterCredentials')}
+                    </p>
+                  </>
+                )}
             </div>
 
             {/* Scrollable Content */}
@@ -272,20 +272,20 @@ const AuthLayout = () => {
               <div className="p-6">
                 <Tabs value={authMode} onValueChange={(value) => setAuthMode(value as 'login' | 'signup')} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
-                    <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
+                    <TabsTrigger value="login" className="text-sm">{t('auth.login')}</TabsTrigger>
+                    <TabsTrigger value="signup" className="text-sm">{t('auth.signup')}</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="login" className="space-y-4">
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="email" className="text-sm font-medium">
-                          Email / Phone / School ID
+                          {t('auth.email')}
                         </Label>
                         <Input
                           id="email"
                           type="email"
-                          placeholder="Enter email, phone, or school ID"
+                          placeholder={t('auth.email')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="h-11"
@@ -294,13 +294,13 @@ const AuthLayout = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="password" className="text-sm font-medium">
-                          Password
+                          {t('auth.password')}
                         </Label>
                         <div className="relative">
                           <Input
                             id="password"
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter your password"
+                            placeholder={t('auth.password')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="h-11 pr-10"
@@ -322,12 +322,12 @@ const AuthLayout = () => {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="fullName" className="text-sm font-medium">
-                          Full Name
+                          {t('auth.fullName')}
                         </Label>
                         <Input
                           id="fullName"
                           type="text"
-                          placeholder="Enter your full name"
+                          placeholder={t('auth.fullName')}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           className="h-11"
@@ -336,12 +336,12 @@ const AuthLayout = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="signupEmail" className="text-sm font-medium">
-                          Email
+                          {t('auth.email')}
                         </Label>
                         <Input
                           id="signupEmail"
                           type="email"
-                          placeholder="Enter your email address"
+                          placeholder={t('auth.email')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="h-11"
@@ -350,13 +350,13 @@ const AuthLayout = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="signupPassword" className="text-sm font-medium">
-                          Password
+                          {t('auth.password')}
                         </Label>
                         <div className="relative">
                           <Input
                             id="signupPassword"
                             type={showPassword ? "text" : "password"}
-                            placeholder="Create a strong password"
+                            placeholder={t('auth.password')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="h-11 pr-10"
@@ -385,12 +385,12 @@ const AuthLayout = () => {
                     {loading ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-                        <span>Please wait...</span>
+                        <span>{t('auth.pleaseWait')}</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
                         <KeyRound className="h-4 w-4" />
-                        <span>{authMode === 'login' ? 'Login' : 'Create Account'}</span>
+                        <span>{authMode === 'login' ? t('auth.login') : t('auth.createAccount')}</span>
                       </div>
                     )}
                   </Button>
@@ -401,7 +401,7 @@ const AuthLayout = () => {
                     disabled={loading}
                   >
                     <Phone className="h-4 w-4 mr-2" />
-                    Login with OTP
+                    {t('auth.loginWithOTP')}
                   </Button>
 
                   <div className="text-center">
@@ -409,7 +409,7 @@ const AuthLayout = () => {
                       variant="link"
                       className="text-sm text-primary hover:underline p-0"
                     >
-                      Forgot Password?
+                      {t('auth.forgotPassword')}
                     </Button>
                   </div>
                 </div>

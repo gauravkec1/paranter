@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { AttendanceCard } from "@/components/AttendanceCard";
 import { GradesCard } from "@/components/GradesCard";
@@ -62,6 +63,7 @@ const studentData = {
 };
 
 const Index = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('home');
 
   const handleQuickAction = (action: string) => {
@@ -100,7 +102,7 @@ const Index = () => {
       case 'announcements':
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-foreground">School Announcements</h2>
+            <h2 className="text-xl font-bold text-foreground">{t('dashboard.schoolAnnouncements')}</h2>
             <AnnouncementCard announcements={studentData.announcements} />
           </div>
         );
@@ -109,8 +111,8 @@ const Index = () => {
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Messages</h2>
-              <p className="text-muted-foreground">Coming soon - Direct messaging with teachers</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.messages')}</h2>
+              <p className="text-muted-foreground">{t('dashboard.comingSoon')} - {t('dashboard.directMessaging')}</p>
             </div>
           </div>
         );
@@ -119,8 +121,8 @@ const Index = () => {
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Profile</h2>
-              <p className="text-muted-foreground">Student & parent profile management</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.profile')}</h2>
+              <p className="text-muted-foreground">{t('dashboard.profileManagement')}</p>
             </div>
           </div>
         );
