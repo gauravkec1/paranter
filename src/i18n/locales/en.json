@@ -50,6 +50,24 @@
     "delete": "Delete",
     "view": "View",
     "search": "Search",
-    "close": "Close"
+    "close": "Close",
+    "present": "Present",
+    "absent": "Absent",
+    "percentage": "Percentage",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "overallGrade": "Overall Grade",
+    "lastTest": "Last Test",
+    "upcomingTest": "Upcoming Test",
+    "viewDetails": "View Details",
+    "payFees": "Pay Fees",
+    "messageTeacher": "Message Teacher",
+    "viewSchedule": "View Schedule",
+    "downloadReport": "Download Report",
+    "from": "From",
+    "posted": "posted",
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "days ago"
   }
 }

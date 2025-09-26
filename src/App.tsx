@@ -205,6 +205,7 @@ const AppContent = memo(() => {
   }
 
   const getDashboardForRole = () => {
+    // Ensure complete portal isolation - users only see their role's dashboard
     switch (userProfile.role) {
       case 'parent':
         return <Index />;
@@ -217,6 +218,7 @@ const AppContent = memo(() => {
       case 'driver':
         return <DriverPortal />;
       default:
+        // Default to parent portal for any unknown roles
         return <Index />;
     }
   };
@@ -226,12 +228,14 @@ const AppContent = memo(() => {
       <Suspense fallback={<LoadingScreen />}>
         <div className="critical-above-fold">
           <Routes>
+            {/* All users get redirected to their role-specific dashboard */}
             <Route path="/" element={getDashboardForRole()} />
-            <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
-            <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
-            <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
-            <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Strict portal isolation - only allow access to user's own role */}
+            <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" replace />} />
+            <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />} />
+            <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" replace />} />
+            <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" replace />} />
+            {/* Catch-all route for any unknown URLs */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

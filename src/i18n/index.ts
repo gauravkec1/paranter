@@ -55,7 +55,25 @@ const en = {
     "delete": "Delete",
     "view": "View",
     "search": "Search",
-    "close": "Close"
+    "close": "Close",
+    "present": "Present",
+    "absent": "Absent",
+    "percentage": "Percentage",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "overallGrade": "Overall Grade",
+    "lastTest": "Last Test",
+    "upcomingTest": "Upcoming Test",
+    "viewDetails": "View Details",
+    "payFees": "Pay Fees",
+    "messageTeacher": "Message Teacher",
+    "viewSchedule": "View Schedule",
+    "downloadReport": "Download Report",
+    "from": "From",
+    "posted": "posted",
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "days ago"
   }
 };
 
@@ -112,7 +130,25 @@ const kannada = {
     "delete": "ಅಳಿಸಿ",
     "view": "ವೀಕ್ಷಿಸಿ",
     "search": "ಹುಡುಕಿ",
-    "close": "ಮುಚ್ಚಿ"
+    "close": "ಮುಚ್ಚಿ",
+    "present": "ಹಾಜರು",
+    "absent": "ಗೈರು",
+    "percentage": "ಶೇಕಡಾವಾರು",
+    "thisWeek": "ಈ ವಾರ",
+    "thisMonth": "ಈ ತಿಂಗಳು",
+    "overallGrade": "ಒಟ್ಟಾರೆ ಗ್ರೇಡ್",
+    "lastTest": "ಕೊನೆಯ ಪರೀಕ್ಷೆ",
+    "upcomingTest": "ಮುಂಬರುವ ಪರೀಕ್ಷೆ",
+    "viewDetails": "ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+    "payFees": "ಶುಲ್ಕ ಪಾವತಿ",
+    "messageTeacher": "ಶಿಕ್ಷಕರಿಗೆ ಸಂದೇಶ",
+    "viewSchedule": "ವೇಳಾಪಟ್ಟಿ ವೀಕ್ಷಿಸಿ",
+    "downloadReport": "ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "from": "ನಿಂದ",
+    "posted": "ಪೋಸ್ಟ್ ಮಾಡಲಾಗಿದೆ",
+    "today": "ಇಂದು",
+    "yesterday": "ನಿನ್ನೆ",
+    "daysAgo": "ದಿನಗಳ ಹಿಂದೆ"
   }
 };
 

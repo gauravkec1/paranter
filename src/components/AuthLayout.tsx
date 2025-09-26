@@ -110,14 +110,35 @@ const AuthLayout = () => {
   const handleAuth = async () => {
     if (loading) return;
 
+    // Set up timeout for authentication
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        toast.error('Server not responding. Please try again.');
+      }
+    }, 5000); // 5 second timeout
+
     try {
       setLoading(true);
 
-      // Validate inputs
-      const emailValidation = emailSchema.safeParse(email.trim());
-      if (!emailValidation.success) {
-        toast.error(emailValidation.error.issues[0].message);
+      // Basic validation - just check if fields are filled
+      if (!email.trim()) {
+        toast.error('Email is required');
         return;
+      }
+
+      if (!password) {
+        toast.error('Password is required');
+        return;
+      }
+
+      // For login, just validate basic email format
+      if (authMode === 'login') {
+        const emailValidation = emailSchema.safeParse(email.trim());
+        if (!emailValidation.success) {
+          toast.error('Please enter a valid email address');
+          return;
+        }
       }
 
       if (authMode === 'signup') {
@@ -126,15 +147,21 @@ const AuthLayout = () => {
           return;
         }
 
-        const authValidation = authSchema.safeParse({ email: email.trim(), password });
-        if (!authValidation.success) {
-          toast.error(authValidation.error.issues[0].message);
+        // For signup, validate email and password strength
+        const emailValidation = emailSchema.safeParse(email.trim());
+        if (!emailValidation.success) {
+          toast.error(emailValidation.error.issues[0].message);
+          return;
+        }
+
+        if (password.length < 6) {
+          toast.error('Password must be at least 6 characters long');
           return;
         }
 
         // Sign up
         const { error: signUpError } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
@@ -148,6 +175,8 @@ const AuthLayout = () => {
         if (signUpError) {
           if (signUpError.message.includes('already registered')) {
             toast.error('An account with this email already exists. Please try logging in instead.');
+          } else if (signUpError.message.includes('Password')) {
+            toast.error('Password must be at least 6 characters long');
           } else {
             toast.error(signUpError.message);
           }
@@ -158,27 +187,37 @@ const AuthLayout = () => {
         handleCloseModal();
       } else {
         // Login
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
 
         if (signInError) {
-          if (signInError.message.includes('Invalid login credentials')) {
+          if (signInError.message.includes('Invalid login credentials') || 
+              signInError.message.includes('Email not confirmed')) {
             toast.error('Invalid email or password. Please check your credentials and try again.');
+          } else if (signInError.message.includes('Email not confirmed')) {
+            toast.error('Please verify your email address before logging in.');
           } else {
             toast.error(signInError.message);
           }
           return;
         }
 
-        toast.success('Login successful! Welcome back.');
-        handleCloseModal();
+        if (data?.user) {
+          toast.success('Login successful! Welcome back.');
+          handleCloseModal();
+          // The AuthProvider will handle the redirect based on user role
+        } else {
+          toast.error('Login failed. Please try again.');
+          return;
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error('Connection error. Please check your internet and try again.');
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
