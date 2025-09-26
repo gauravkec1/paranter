@@ -102,13 +102,19 @@ const AppContent = memo(() => {
 });
 
 const App = () => {
+  console.log("🏗️ App component rendering...");
+  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <div style={{ padding: '20px', background: 'white', color: 'black', minHeight: '100vh' }}>
+            <h1>App is loading...</h1>
+            <p>If you see this, the basic app structure is working.</p>
+            <AppContent />
+          </div>
           <Toaster />
           <Sonner />
-          <AppContent />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
