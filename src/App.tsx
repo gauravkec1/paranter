@@ -14,7 +14,7 @@ import { useInstantPreload, useMaxPerformance } from "@/hooks/useMaxPerformance"
 import { preloadCriticalResources } from "@/hooks/useLazyComponent";
 
 // Optimized lazy loading with smart prefetching
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(() => import("./pages/ParentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const FinancePortal = lazy(() => import("./pages/FinancePortal"));

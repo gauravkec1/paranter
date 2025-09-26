@@ -116,30 +116,20 @@ const AuthLayout = () => {
       // Basic validation
       if (!email.trim()) {
         setLoading(false);
-        toast.error('Email is required');
+        toast.error(t('auth.emailRequired'));
         return;
       }
 
       if (!password) {
         setLoading(false);
-        toast.error('Password is required');
+        toast.error(t('auth.passwordRequired'));
         return;
-      }
-
-      // For login, validate basic email format
-      if (authMode === 'login') {
-        const emailValidation = emailSchema.safeParse(email.trim());
-        if (!emailValidation.success) {
-          setLoading(false);
-          toast.error('Please enter a valid email address');
-          return;
-        }
       }
 
       if (authMode === 'signup') {
         if (!fullName.trim()) {
           setLoading(false);
-          toast.error('Full name is required');
+          toast.error(t('auth.fullNameRequired'));
           return;
         }
 
@@ -153,7 +143,7 @@ const AuthLayout = () => {
 
         if (password.length < 6) {
           setLoading(false);
-          toast.error('Password must be at least 6 characters long');
+          toast.error(t('auth.passwordTooShort'));
           return;
         }
 
@@ -173,9 +163,9 @@ const AuthLayout = () => {
         if (signUpError) {
           setLoading(false);
           if (signUpError.message.includes('already registered')) {
-            toast.error('An account with this email already exists. Please try logging in instead.');
+            toast.error(t('auth.emailAlreadyExists'));
           } else if (signUpError.message.includes('Password')) {
-            toast.error('Password must be at least 6 characters long');
+            toast.error(t('auth.passwordTooShort'));
           } else {
             toast.error(signUpError.message);
           }
@@ -183,42 +173,64 @@ const AuthLayout = () => {
         }
 
         setLoading(false);
-        toast.success('Account created! Please check your email to verify your account.');
+        toast.success(t('auth.accountCreated'));
         handleCloseModal();
       } else {
-        // Login
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-
-        if (signInError) {
+        // Login with timeout and retry logic
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
           setLoading(false);
-          if (signInError.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password. Please check your credentials and try again.');
-          } else if (signInError.message.includes('Email not confirmed')) {
-            toast.error('Please verify your email address before logging in.');
-          } else {
-            toast.error(signInError.message);
+          toast.error(t('auth.loginTimeout'));
+        }, 8000); // 8 second timeout
+
+        try {
+          const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (signInError) {
+            setLoading(false);
+            if (signInError.message.includes('Invalid login credentials')) {
+              toast.error(t('auth.invalidCredentials'));
+            } else if (signInError.message.includes('Email not confirmed')) {
+              toast.error(t('auth.emailNotConfirmed'));
+            } else if (signInError.message.includes('Too many requests')) {
+              toast.error(t('auth.tooManyAttempts'));
+            } else {
+              toast.error(signInError.message);
+            }
+            return;
           }
-          return;
-        }
 
-        if (data?.user) {
-          // Don't set loading false here - let the auth state change handle it
-          toast.success('Login successful! Redirecting...');
-          handleCloseModal();
-          // The AuthProvider will handle the redirect and set loading to false
-        } else {
+          if (data?.user) {
+            // Don't set loading false here - let the auth state change handle it
+            toast.success(t('auth.loginSuccessful'));
+            handleCloseModal();
+            // The AuthProvider will handle the redirect and set loading to false
+          } else {
+            setLoading(false);
+            toast.error(t('auth.loginFailed'));
+            return;
+          }
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
           setLoading(false);
-          toast.error('Login failed. Please try again.');
-          return;
+          
+          if (fetchError.name === 'AbortError') {
+            toast.error(t('auth.loginTimeout'));
+          } else {
+            toast.error(t('auth.networkError'));
+          }
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
       setLoading(false);
-      toast.error('Connection error. Please check your internet and try again.');
+      toast.error(t('auth.connectionError'));
     }
   };
 

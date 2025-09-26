@@ -15,7 +15,21 @@
     "createAccount": "Create Account",
     "loginWithOTP": "Login with OTP",
     "forgotPassword": "Forgot Password?",
-    "pleaseWait": "Please wait..."
+    "pleaseWait": "Please wait...",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "fullNameRequired": "Full name is required",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "emailAlreadyExists": "An account with this email already exists. Please sign in instead.",
+    "accountCreated": "Account created! Please check your email to verify your account.",
+    "invalidCredentials": "Invalid email or password. Please check your credentials and try again.",
+    "emailNotConfirmed": "Please verify your email address before signing in.",
+    "tooManyAttempts": "Too many login attempts. Please wait a moment and try again.",
+    "loginSuccessful": "Login successful! Redirecting...",
+    "loginFailed": "Login failed. Please try again.",
+    "loginTimeout": "Login request timed out. Please check your connection and try again.",
+    "networkError": "Network error. Please check your internet connection and try again.",
+    "connectionError": "Connection error. Please check your internet and try again."
   },
   "roles": {
     "parent": "Parent Portal",
@@ -79,7 +93,23 @@
     "urgent": "Urgent",
     "new": "NEW",
     "info": "Info",
-    "event": "Event"
+    "event": "Event",
+    "noStudentsFound": "No students found for this parent account",
+    "studentsLoadError": "Unable to load student information. Please try again.",
+    "attendanceLoadError": "Unable to load attendance data. Please try again.",
+    "feesLoadError": "Unable to load fee information. Please try again.",
+    "announcementsLoadError": "Unable to load announcements. Please try again.",
+    "dataRefreshed": "Data refreshed successfully",
+    "initiated": "initiated",
+    "openingInterface": "Opening {{interface}} interface...",
+    "redirectingToPayment": "Redirecting to payment portal...",
+    "openingFeeHistory": "Opening fee history...",
+    "openingAssignment": "Opening {{title}}...",
+    "selectStudent": "Select Student",
+    "noStudents": "No Students Found",
+    "noStudentsDescription": "No students are associated with this parent account.",
+    "noAnnouncements": "No Announcements",
+    "noAnnouncementsDescription": "There are no active announcements at this time."
   },
   "common": {
     "loading": "Loading...",
@@ -107,6 +137,8 @@
     "posted": "posted",
     "today": "today",
     "yesterday": "yesterday",
-    "daysAgo": "days ago"
+    "daysAgo": "days ago",
+    "retry": "Retry",
+    "refresh": "Refresh"
   }
 }
