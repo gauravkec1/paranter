@@ -5,19 +5,51 @@ import { BookOpen, Calendar, CheckCircle, Clock, AlertTriangle } from "lucide-re
 import { useTranslation } from "react-i18next";
 
 interface Assignment {
-  subject: string;
+  id: string;
   title: string;
-  dueDate: string;
-  status: 'completed' | 'pending' | 'overdue';
+  subject: string;
+  due_date: string;
   description?: string;
+  instructions?: string;
+  total_marks?: number;
+  assignment_submissions?: Array<{
+    id: string;
+    student_id: string;
+    submitted_at?: string;
+  }>;
+}
+
+interface Student {
+  id: string;
+  full_name: string;
+  student_id: string;
 }
 
 interface HomeworkCardProps {
   assignments: Assignment[];
-  onViewAssignment: (assignment: Assignment) => void;
+  students: Student[];
+  onViewAssignment: (assignmentId: string) => void;
 }
 
-const getStatusIcon = (status: Assignment['status']) => {
+const getAssignmentStatus = (assignment: Assignment, studentIds: string[]) => {
+  // Check if any student has submitted
+  const hasSubmission = assignment.assignment_submissions?.some(sub => 
+    studentIds.includes(sub.student_id) && sub.submitted_at
+  );
+  
+  const dueDate = new Date(assignment.due_date);
+  const now = new Date();
+  
+  if (hasSubmission) {
+    return 'completed';
+  } else if (dueDate < now) {
+    return 'overdue';
+  } else {
+    return 'pending';
+  }
+};
+
+const getStatusIcon = (status: string) => {
   switch (status) {
     case 'completed':
       return <CheckCircle className="h-4 w-4 text-excellent" />;
@@ -30,7 +62,7 @@ const getStatusIcon = (status: Assignment['status']) => {
   }
 };
 
-const getStatusColor = (status: Assignment['status']) => {
+const getStatusColor = (status: string) => {
   switch (status) {
     case 'completed':
       return 'bg-excellent text-white';
@@ -43,7 +75,7 @@ const getStatusColor = (status: Assignment['status']) => {
   }
 };
 
-const getStatusText = (status: Assignment['status'], t: any) => {
+const getStatusText = (status: string, t: any) => {
   switch (status) {
     case 'completed':
       return t('dashboard.completed');
@@ -56,9 +88,17 @@ const getStatusText = (status: Assignment['status'], t: any) => {
   }
 };
 
-export const HomeworkCard = ({ assignments, onViewAssignment }: HomeworkCardProps) => {
+export const HomeworkCard = ({ assignments, students, onViewAssignment }: HomeworkCardProps) => {
   const { t } = useTranslation();
-  const pendingCount = assignments.filter(a => a.status !== 'completed').length;
+  const studentIds = students.map(s => s.id);
+  
+  // Calculate status for each assignment
+  const assignmentsWithStatus = assignments.map(assignment => ({
+    ...assignment,
+    status: getAssignmentStatus(assignment, studentIds)
+  }));
+  
+  const pendingCount = assignmentsWithStatus.filter(a => a.status !== 'completed').length;
 
   return (
     <Card className="card-hover">
@@ -82,8 +122,8 @@ export const HomeworkCard = ({ assignments, onViewAssignment }: HomeworkCardProp
           </div>
         ) : (
           <div className="space-y-3">
-            {assignments.slice(0, 3).map((assignment, index) => (
-              <div key={index} className="border border-card-border rounded-lg p-3 space-y-2">
+            {assignmentsWithStatus.slice(0, 3).map((assignment) => (
+              <div key={assignment.id} className="border border-card-border rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     {getStatusIcon(assignment.status)}
@@ -105,13 +145,13 @@ export const HomeworkCard = ({ assignments, onViewAssignment }: HomeworkCardProp
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {t('dashboard.dueDate')}: {assignment.dueDate}
+                    {t('dashboard.dueDate')}: {new Date(assignment.due_date).toLocaleDateString()}
                   </div>
                   
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onViewAssignment(assignment)}
+                    onClick={() => onViewAssignment(assignment.id)}
                     className="text-primary hover:text-primary/80 p-1 h-auto"
                   >
                     {t('common.viewDetails')}
