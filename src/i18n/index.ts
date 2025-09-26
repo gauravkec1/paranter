@@ -5,11 +5,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // English translations
 const en = {
   "welcome": {
-    "title": "Welcome to School Connect",
+    "title": "Welcome to Paranter",
     "subtitle": "Choose your portal to access the school management system and stay connected with your educational community"
   },
   "auth": {
-    "loginTitle": "School Management System",
+    "loginTitle": "Paranter Management System",
     "selectRole": "Select Your Role",
     "enterCredentials": "Enter your credentials to access the portal",
     "login": "Login",
@@ -80,11 +80,11 @@ const en = {
 // Kannada translations
 const kannada = {
   "welcome": {
-    "title": "ಶಾಲಾ ಸಂಪರ್ಕಕ್ಕೆ ಸ್ವಾಗತ",
+    "title": "ಪ್ಯಾರೆಂಟರ್‌ಗೆ ಸ್ವಾಗತ",
     "subtitle": "ಶಾಲಾ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆಯನ್ನು ಪ್ರವೇಶಿಸಲು ಮತ್ತು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಸಮುದಾಯದೊಂದಿಗೆ ಸಂಪರ್ಕದಲ್ಲಿರಲು ನಿಮ್ಮ ಪೋರ್ಟಲ್ ಆಯ್ಕೆ ಮಾಡಿ"
   },
   "auth": {
-    "loginTitle": "ಶಾಲಾ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ",
+    "loginTitle": "ಪ್ಯಾರೆಂಟರ್ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ",
     "selectRole": "ನಿಮ್ಮ ಪಾತ್ರವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
     "enterCredentials": "ಪೋರ್ಟಲ್ ಪ್ರವೇಶಿಸಲು ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ",
     "login": "ಲಾಗಿನ್",

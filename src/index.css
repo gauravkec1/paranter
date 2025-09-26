@@ -52,10 +52,13 @@ button, input, select, textarea {
 
 @layer base {
   :root {
-    /* Brand Colors */
-    --primary: 214 100% 60%;
+    /* Brand Colors - Paranter Theme */
+    --primary: 260 80% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 214 95% 75%;
+    --primary-glow: 260 70% 65%;
+    --secondary: 220 80% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --accent-gold: 45 100% 60%;
     
     /* Background System */
     --background: 0 0% 98%;

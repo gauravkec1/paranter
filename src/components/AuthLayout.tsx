@@ -240,9 +240,9 @@ const AuthLayout = () => {
       <header className="w-full border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <Building className="h-8 w-8 text-primary" />
+            <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-10 w-10" />
             <div>
-              <h1 className="text-xl font-bold text-foreground">School Connect</h1>
+              <h1 className="text-xl font-bold text-foreground">Paranter</h1>
               <p className="text-xs text-muted-foreground">Management System</p>
             </div>
           </div>

@@ -1,10 +1,10 @@
 {
   "welcome": {
-    "title": "Welcome to School Connect",
+    "title": "Welcome to Paranter",
     "subtitle": "Choose your portal to access the school management system and stay connected with your educational community"
   },
   "auth": {
-    "loginTitle": "School Management System",
+    "loginTitle": "Paranter Management System",
     "selectRole": "Select Your Role",
     "enterCredentials": "Enter your credentials to access the portal",
     "login": "Login",

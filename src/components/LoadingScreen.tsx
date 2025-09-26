@@ -36,13 +36,13 @@ export const LoadingScreen = () => {
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-4">
         {/* Minimal Logo */}
-        <div className="w-12 h-12 mx-auto bg-primary rounded-lg flex items-center justify-center">
-          <Building className="h-6 w-6 text-primary-foreground" />
+        <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center">
+          <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-12 w-12" />
         </div>
 
         {/* Minimal Text */}
         <div>
-          <h1 className="text-xl font-semibold text-foreground">School Connect</h1>
+          <h1 className="text-xl font-semibold text-foreground">Paranter</h1>
           <p className="text-xs text-muted-foreground">Loading...</p>
         </div>
 
