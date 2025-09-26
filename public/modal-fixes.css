@@ -1,16 +1,16 @@
-/* Additional Performance & Modal Fixes */
-
-/* Ensure proper modal behavior */
+/* Modal Fixes & Performance Optimizations */
 .modal-overlay {
   position: fixed !important;
-  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   z-index: 100 !important;
   background: rgba(0, 0, 0, 0.8) !important;
   backdrop-filter: blur(4px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
 }
 
-/* Prevent body scroll when modal is open */
 body.modal-open {
   overflow: hidden !important;
   position: fixed !important;
@@ -18,7 +18,6 @@ body.modal-open {
   height: 100% !important;
 }
 
-/* High z-index for all modals */
 [data-radix-dialog-overlay] {
   z-index: 100 !important;
 }
@@ -27,7 +26,6 @@ body.modal-open {
   z-index: 101 !important;
 }
 
-/* Dropdown fixes */
 [data-radix-popper-content-wrapper] {
   z-index: 50 !important;
 }
@@ -39,7 +37,6 @@ body.modal-open {
   z-index: 50 !important;
 }
 
-/* Dark mode dropdown fixes */
 [data-theme="dark"] [role="menu"], 
 [data-theme="dark"] [role="listbox"], 
 [data-theme="dark"] [role="dialog"] {
@@ -47,18 +44,15 @@ body.modal-open {
   border: 1px solid #374151 !important;
 }
 
-/* Performance optimizations */
-* {
+html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fast transitions only */
 .fast-transition {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
 }
 
-/* Critical above fold optimization */
 .critical-above-fold {
   contain: layout style paint;
   content-visibility: auto;
