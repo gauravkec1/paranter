@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Clock, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Subject {
   name: string;
@@ -30,10 +31,10 @@ const getStatusColor = (status: Subject['status']) => {
   }
 };
 
-const getStatusBadge = (percentage: number) => {
-  if (percentage >= 95) return { variant: 'default' as const, text: 'Excellent', className: 'bg-excellent text-white' };
-  if (percentage >= 85) return { variant: 'secondary' as const, text: 'Good', className: 'bg-good text-white' };
-  return { variant: 'destructive' as const, text: 'Needs Improvement', className: 'bg-needs-improvement text-white' };
+const getStatusBadge = (percentage: number, t: any) => {
+  if (percentage >= 95) return { variant: 'default' as const, text: t('dashboard.excellent'), className: 'bg-excellent text-white' };
+  if (percentage >= 85) return { variant: 'secondary' as const, text: t('dashboard.good'), className: 'bg-good text-white' };
+  return { variant: 'destructive' as const, text: t('dashboard.needsImprovement'), className: 'bg-needs-improvement text-white' };
 };
 
 export const AttendanceCard = ({ 
@@ -41,14 +42,15 @@ export const AttendanceCard = ({
   subjects, 
   lastUpdated 
 }: AttendanceCardProps) => {
+  const { t } = useTranslation();
   return (
     <Card className="card-hover">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
-          <span>Student Attendance</span>
+          <span>{t('dashboard.studentAttendance')}</span>
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="h-3 w-3 mr-1" />
-            {lastUpdated}
+            {lastUpdated === 'Just now' ? t('dashboard.justNow') : lastUpdated}
           </div>
         </CardTitle>
       </CardHeader>
@@ -57,11 +59,11 @@ export const AttendanceCard = ({
         {/* Overall Attendance */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Overall Attendance</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.overallAttendance')}</p>
             <p className="text-3xl font-bold text-foreground">{overallPercentage}%</p>
           </div>
-          <Badge {...getStatusBadge(overallPercentage)} className="ml-2">
-            {getStatusBadge(overallPercentage).text}
+          <Badge {...getStatusBadge(overallPercentage, t)} className="ml-2">
+            {getStatusBadge(overallPercentage, t).text}
           </Badge>
         </div>
         
@@ -76,7 +78,9 @@ export const AttendanceCard = ({
                   {subject.absences && subject.absences > 0 && (
                     <div className="flex items-center text-warning">
                       <AlertTriangle className="h-3 w-3 mr-1" />
-                      <span className="text-xs">{subject.absences} absence{subject.absences > 1 ? 's' : ''}</span>
+                      <span className="text-xs">
+                        {subject.absences} {subject.absences > 1 ? t('dashboard.absences') : t('dashboard.absence')}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -90,7 +94,7 @@ export const AttendanceCard = ({
               />
               {subject.lastAbsence && (
                 <p className="text-xs text-warning">
-                  Last absence: {subject.lastAbsence}
+                  {t('dashboard.lastAbsence')}: {subject.lastAbsence}
                 </p>
               )}
             </div>
