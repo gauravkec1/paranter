@@ -2,25 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { Building } from 'lucide-react';
 
 export const LoadingScreen = () => {
-  const [progress, setProgress] = useState(60); // Start even higher
+  const [progress, setProgress] = useState(60);
 
   useEffect(() => {
-    // Ultra fast progress - complete in 200ms
+    // Fast progress animation
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) return 100;
-        return prev + 50; // Even bigger jumps
+        return prev + 20;
       });
-    }, 20); // Faster interval
+    }, 50);
 
-    // Force complete after minimal time
+    // Force complete after short time
     const timeout = setTimeout(() => {
       setProgress(100);
-    }, 200); // Even faster completion
+    }, 500);
+
+    // Emergency backup - if loading screen shows for more than 5 seconds, 
+    // something is wrong, so we force reload
+    const emergencyTimeout = setTimeout(() => {
+      console.error('Loading screen timeout - forcing page reload');
+      window.location.reload();
+    }, 5000);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
+      clearTimeout(emergencyTimeout);
     };
   }, []);
 

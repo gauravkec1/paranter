@@ -81,6 +81,15 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     let mounted = true;
+    let authInitialized = false;
+    
+    // Ensure loading completes within 3 seconds maximum
+    const failsafeTimeout = setTimeout(() => {
+      if (mounted && !authInitialized) {
+        console.log('Failsafe: Setting loading to false');
+        setIsLoading(false);
+      }
+    }, 3000);
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -102,19 +111,21 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
             
             if (mounted) {
               setUserProfile(profile);
-              setIsLoading(false); // Set loading to false when profile is loaded
             }
           } catch (error) {
             console.error('Profile fetch error:', error);
-            if (mounted) {
-              setIsLoading(false); // Set loading to false even on error
-            }
           }
         } else {
           if (mounted) {
             setUserProfile(null);
-            setIsLoading(false); // Set loading to false when no session
           }
+        }
+        
+        // Always set loading to false after auth state change
+        if (mounted) {
+          authInitialized = true;
+          setIsLoading(false);
+          clearTimeout(failsafeTimeout);
         }
       }
     );
@@ -122,9 +133,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
+        
+        console.log('Initial session:', session?.user?.id || 'No session');
         
         if (session?.user) {
           setSession(session);
@@ -143,15 +157,25 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           } catch (profileError) {
             console.error('Profile fetch error:', profileError);
           }
+        } else {
+          // No session found
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
         }
         
+        // Always set loading to false after initialization
         if (mounted) {
+          authInitialized = true;
           setIsLoading(false);
+          clearTimeout(failsafeTimeout);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {
+          authInitialized = true;
           setIsLoading(false);
+          clearTimeout(failsafeTimeout);
         }
       }
     };
@@ -160,6 +184,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       mounted = false;
+      clearTimeout(failsafeTimeout);
       subscription.unsubscribe();
     };
   }, []);
