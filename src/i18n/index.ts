@@ -4,6 +4,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Translation resources
 const en = {
+  "welcome": {
+    "title": "Welcome to School Connect",
+    "subtitle": "Choose your portal to access the school management system and stay connected with your educational community"
+  },
   "common": {
     "welcome": "Welcome",
     "login": "Login",
@@ -49,10 +53,21 @@ const en = {
     "forgotPassword": "Forgot Password?",
     "or": "OR",
     "loginWithOTP": "Login with OTP"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "quickStats": "Quick Statistics", 
+    "recentActivity": "Recent Activity",
+    "announcements": "Announcements",
+    "notifications": "Notifications"
   }
 };
 
 const hi = {
+  "welcome": {
+    "title": "स्कूल कनेक्ट में आपका स्वागत है",
+    "subtitle": "स्कूल प्रबंधन प्रणाली तक पहुंचने और अपने शैक्षिक समुदाय के साथ जुड़े रहने के लिए अपना पोर्टल चुनें"
+  },
   "common": {
     "welcome": "स्वागत",
     "login": "लॉगिन",
@@ -102,6 +117,10 @@ const hi = {
 };
 
 const kn = {
+  "welcome": {
+    "title": "ಶಾಲಾ ಸಂಪರ್ಕಕ್ಕೆ ಸ್ವಾಗತ",
+    "subtitle": "ಶಾಲಾ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆಯನ್ನು ಪ್ರವೇಶಿಸಲು ಮತ್ತು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಸಮುದಾಯದೊಂದಿಗೆ ಸಂಪರ್ಕದಲ್ಲಿರಲು ನಿಮ್ಮ ಪೋರ್ಟಲ್ ಆಯ್ಕೆ ಮಾಡಿ"
+  },
   "common": {
     "welcome": "ಸ್ವಾಗತ",
     "login": "ಲಾಗಿನ್",
