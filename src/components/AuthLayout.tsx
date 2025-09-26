@@ -1,31 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, EyeOff, X, Users, GraduationCap, Shield, CreditCard, Car, Phone } from 'lucide-react';
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { supabase } from '@/integrations/supabase/client';
-import { authSchema, emailSchema } from '@/lib/validation';
-import { z } from 'zod';
-import { 
-  Users, 
-  GraduationCap, 
-  DollarSign, 
-  Car,
-  Shield,
-  Phone,
-  Mail,
-  KeyRound,
-  Building,
-  Eye,
-  EyeOff,
-  X
-} from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import paranteLogo from "@/assets/paranter-logo.png";
 
 const roles = [
   {
@@ -33,202 +17,128 @@ const roles = [
     title: 'roles.parent',
     description: 'roles.parentDesc',
     icon: Users,
-    color: 'bg-gradient-to-br from-blue-500 to-cyan-500',
-    path: '/'
+    color: 'bg-blue-500'
   },
   {
-    id: 'teacher',
+    id: 'teacher', 
     title: 'roles.teacher',
     description: 'roles.teacherDesc',
     icon: GraduationCap,
-    color: 'bg-gradient-to-br from-emerald-500 to-teal-500',
-    path: '/teacher'
+    color: 'bg-green-500'
   },
   {
     id: 'admin',
     title: 'roles.admin',
     description: 'roles.adminDesc',
     icon: Shield,
-    color: 'bg-gradient-to-br from-purple-500 to-violet-500',
-    path: '/admin'
+    color: 'bg-purple-500'
   },
   {
     id: 'staff',
     title: 'roles.staff',
-    description: 'roles.staffDesc',
-    icon: DollarSign,
-    color: 'bg-gradient-to-br from-orange-500 to-red-500',
-    path: '/finance'
+    description: 'roles.staffDesc', 
+    icon: CreditCard,
+    color: 'bg-orange-500'
   },
   {
     id: 'driver',
     title: 'roles.driver',
     description: 'roles.driverDesc',
     icon: Car,
-    color: 'bg-gradient-to-br from-green-500 to-emerald-500',
-    path: '/driver'
+    color: 'bg-red-500'
   }
 ];
 
 const AuthLayout = () => {
-  const { t } = useTranslation();
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  
+  const { t } = useTranslation();
+  const { signIn, signUp } = useAuth();
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
     setShowModal(true);
-    // Prevent background scrolling
-    document.body.classList.add('modal-open');
+    setActiveTab('login');
+    // Reset form
+    setEmail('');
+    setPassword('');
+    setFullName('');
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setSelectedRole(null);
+    setSelectedRole('');
+    setActiveTab('login');
+    setLoading(false);
+    // Reset form
     setEmail('');
     setPassword('');
     setFullName('');
-    setAuthMode('login');
-    setShowPassword(false);
-    // Restore background scrolling
-    document.body.classList.remove('modal-open');
   };
 
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim() || !password.trim()) {
+      toast.error(t('auth.emailRequired'));
+      return;
+    }
 
-  const handleAuth = async () => {
-    if (loading) return;
+    if (activeTab === 'signup' && !fullName.trim()) {
+      toast.error(t('auth.fullNameRequired'));
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error(t('auth.passwordTooShort'));
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      // Basic validation
-      if (!email.trim()) {
-        setLoading(false);
-        toast.error(t('auth.emailRequired'));
-        return;
-      }
-
-      if (!password) {
-        setLoading(false);
-        toast.error(t('auth.passwordRequired'));
-        return;
-      }
-
-      if (authMode === 'signup') {
-        if (!fullName.trim()) {
+      if (activeTab === 'login') {
+        console.log('🔐 Starting login process...');
+        const result = await signIn(email, password);
+        
+        if (result.success) {
+          console.log('✅ Login successful, auth state will handle redirect');
+          toast.success(t('auth.loginSuccessful'));
+          handleCloseModal();
+          // The AuthProvider will handle the redirect automatically
+        } else {
+          console.error('❌ Login failed:', result.error);
           setLoading(false);
-          toast.error(t('auth.fullNameRequired'));
-          return;
+          toast.error(result.error || t('auth.loginFailed'));
         }
-
-        // For signup, validate email and password strength
-        const emailValidation = emailSchema.safeParse(email.trim());
-        if (!emailValidation.success) {
-          setLoading(false);
-          toast.error(emailValidation.error.issues[0].message);
-          return;
-        }
-
-        if (password.length < 6) {
-          setLoading(false);
-          toast.error(t('auth.passwordTooShort'));
-          return;
-        }
-
-        // Sign up
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: fullName,
-              role: selectedRole || 'parent'
-            }
-          }
-        });
-
-        if (signUpError) {
-          setLoading(false);
-          if (signUpError.message.includes('already registered')) {
-            toast.error(t('auth.emailAlreadyExists'));
-          } else if (signUpError.message.includes('Password')) {
-            toast.error(t('auth.passwordTooShort'));
-          } else {
-            toast.error(signUpError.message);
-          }
-          return;
-        }
-
-        setLoading(false);
-        toast.success(t('auth.accountCreated'));
-        handleCloseModal();
       } else {
-        // Login with timeout and retry logic
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
+        console.log('📝 Starting signup process...');
+        const result = await signUp(email, password, fullName, selectedRole);
+        
+        if (result.success) {
+          console.log('✅ Signup successful');
           setLoading(false);
-          toast.error(t('auth.loginTimeout'));
-        }, 8000); // 8 second timeout
-
-        try {
-          const { data, error: signInError } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
-
-          clearTimeout(timeoutId);
-
-          if (signInError) {
-            setLoading(false);
-            if (signInError.message.includes('Invalid login credentials')) {
-              toast.error(t('auth.invalidCredentials'));
-            } else if (signInError.message.includes('Email not confirmed')) {
-              toast.error(t('auth.emailNotConfirmed'));
-            } else if (signInError.message.includes('Too many requests')) {
-              toast.error(t('auth.tooManyAttempts'));
-            } else {
-              toast.error(signInError.message);
-            }
-            return;
-          }
-
-          if (data?.user) {
-            // Don't set loading false here - let the auth state change handle it
-            toast.success(t('auth.loginSuccessful'));
-            handleCloseModal();
-            // The AuthProvider will handle the redirect and set loading to false
-          } else {
-            setLoading(false);
-            toast.error(t('auth.loginFailed'));
-            return;
-          }
-        } catch (fetchError: any) {
-          clearTimeout(timeoutId);
+          toast.success(t('auth.accountCreated'));
+          setActiveTab('login');
+          setPassword('');
+          setFullName('');
+        } else {
+          console.error('❌ Signup failed:', result.error);
           setLoading(false);
-          
-          if (fetchError.name === 'AbortError') {
-            toast.error(t('auth.loginTimeout'));
-          } else {
-            toast.error(t('auth.networkError'));
-          }
+          toast.error(result.error || 'Registration failed. Please try again.');
         }
       }
-    } catch (error) {
-      console.error('Auth error:', error);
+    } catch (error: any) {
+      console.error('❌ Auth error:', error);
       setLoading(false);
       toast.error(t('auth.connectionError'));
     }
@@ -240,7 +150,7 @@ const AuthLayout = () => {
       <header className="w-full border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-10 w-10" />
+            <img src={paranteLogo} alt="Paranter Logo" className="h-10 w-10" />
             <div>
               <h1 className="text-xl font-bold text-foreground">Paranter</h1>
               <p className="text-xs text-muted-foreground">Management System</p>
@@ -286,7 +196,7 @@ const AuthLayout = () => {
         </div>
       </main>
 
-      {/* FIXED: Full-Screen Modal Dialog - Completely Custom Implementation */}
+      {/* Auth Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="relative w-full max-w-md mx-auto bg-card rounded-lg shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
@@ -299,170 +209,186 @@ const AuthLayout = () => {
               <span className="sr-only">Close</span>
             </button>
 
-            {/* Modal Header */}
-            <div className="p-6 pb-4 text-center border-b border-border">
-              {selectedRole && (
-                  <>
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center`}>
-                      {React.createElement(roles.find(r => r.id === selectedRole)?.icon || Users, {
-                        className: "h-8 w-8 text-white"
-                      })}
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
-                      {t(roles.find(r => r.id === selectedRole)?.title || 'roles.parent')}
-                    </h2>
-                    <p className="text-muted-foreground text-sm">
-                      {t('auth.enterCredentials')}
-                    </p>
-                  </>
-                )}
-            </div>
+            {/* Modal Content */}
+            <div className="flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-6 pb-4 text-center border-b border-border/50">
+                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
+                  {roles.find(r => r.id === selectedRole)?.icon && 
+                    React.createElement(roles.find(r => r.id === selectedRole)!.icon, { 
+                      className: "h-8 w-8 text-primary" 
+                    })
+                  }
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  {t(roles.find(r => r.id === selectedRole)?.title || 'roles.parent')}
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  {t('auth.enterCredentials')}
+                </p>
+              </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                <Tabs value={authMode} onValueChange={(value) => setAuthMode(value as 'login' | 'signup')} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="login" className="text-sm">{t('auth.login')}</TabsTrigger>
-                    <TabsTrigger value="signup" className="text-sm">{t('auth.signup')}</TabsTrigger>
-                  </TabsList>
+              {/* Form Content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+                      <TabsTrigger value="signup">{t('auth.signup')}</TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="login" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          {t('auth.email')}
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder={t('auth.email')}
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="h-11"
-                          disabled={loading}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium">
-                          {t('auth.password')}
-                        </Label>
-                        <div className="relative">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <TabsContent value="login" className="space-y-4 mt-0">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">{t('auth.email')}</Label>
                           <Input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t('auth.password')}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-11 pr-10"
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="your@email.com"
+                            required
                             disabled={loading}
+                            className="w-full"
+                            autoComplete="email"
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
                         </div>
-                      </div>
-                    </div>
-                  </TabsContent>
 
-                  <TabsContent value="signup" className="space-y-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium">
-                          {t('auth.fullName')}
-                        </Label>
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder={t('auth.fullName')}
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className="h-11"
+                        <div className="space-y-2">
+                          <Label htmlFor="password">{t('auth.password')}</Label>
+                          <div className="relative">
+                            <Input
+                              id="password"
+                              type={showPassword ? "text" : "password"}
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              disabled={loading}
+                              className="w-full pr-10"
+                              autoComplete="current-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
                           disabled={loading}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="signupEmail" className="text-sm font-medium">
-                          {t('auth.email')}
-                        </Label>
-                        <Input
-                          id="signupEmail"
-                          type="email"
-                          placeholder={t('auth.email')}
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="h-11"
-                          disabled={loading}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="signupPassword" className="text-sm font-medium">
-                          {t('auth.password')}
-                        </Label>
-                        <div className="relative">
+                        >
+                          {loading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                              {t('auth.pleaseWait')}
+                            </>
+                          ) : (
+                            t('auth.login')
+                          )}
+                        </Button>
+                      </TabsContent>
+
+                      <TabsContent value="signup" className="space-y-4 mt-0">
+                        <div className="space-y-2">
+                          <Label htmlFor="fullName">{t('auth.fullName')}</Label>
                           <Input
-                            id="signupPassword"
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t('auth.password')}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-11 pr-10"
+                            id="fullName"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Your Full Name"
+                            required
                             disabled={loading}
+                            className="w-full"
+                            autoComplete="name"
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
                         </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
 
-                {/* Action Buttons */}
-                <div className="space-y-4 mt-6">
-                  <Button 
-                    onClick={handleAuth} 
-                    className="w-full h-11 text-sm font-medium"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-                        <span>{t('auth.pleaseWait')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <KeyRound className="h-4 w-4" />
-                        <span>{authMode === 'login' ? t('auth.login') : t('auth.createAccount')}</span>
-                      </div>
-                    )}
-                  </Button>
+                        <div className="space-y-2">
+                          <Label htmlFor="signupEmail">{t('auth.email')}</Label>
+                          <Input
+                            id="signupEmail"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="your@email.com"
+                            required
+                            disabled={loading}
+                            className="w-full"
+                            autoComplete="email"
+                          />
+                        </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full h-11 text-sm"
-                    disabled={loading}
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    {t('auth.loginWithOTP')}
-                  </Button>
+                        <div className="space-y-2">
+                          <Label htmlFor="signupPassword">{t('auth.password')}</Label>
+                          <div className="relative">
+                            <Input
+                              id="signupPassword"
+                              type={showPassword ? "text" : "password"}
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              disabled={loading}
+                              className="w-full pr-10"
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </div>
 
-                  <div className="text-center">
-                    <Button
-                      variant="link"
-                      className="text-sm text-primary hover:underline p-0"
-                    >
-                      {t('auth.forgotPassword')}
-                    </Button>
-                  </div>
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                              {t('auth.pleaseWait')}
+                            </>
+                          ) : (
+                            t('auth.createAccount')
+                          )}
+                        </Button>
+                      </TabsContent>
+
+                      {/* Additional Actions */}
+                      {activeTab === 'login' && (
+                        <div className="space-y-3 pt-4 border-t border-border/50">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            disabled={loading}
+                          >
+                            <Phone className="h-4 w-4 mr-2" />
+                            {t('auth.loginWithOTP')}
+                          </Button>
+                          
+                          <div className="text-center">
+                            <button
+                              type="button"
+                              className="text-sm text-primary hover:underline"
+                              disabled={loading}
+                            >
+                              {t('auth.forgotPassword')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </form>
+                  </Tabs>
                 </div>
               </div>
             </div>
@@ -473,5 +399,4 @@ const AuthLayout = () => {
   );
 };
 
-export { AuthLayout };
 export default AuthLayout;

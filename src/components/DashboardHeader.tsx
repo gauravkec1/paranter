@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ProfileManagement } from "@/components/ProfileManagement";
-import { useAuth } from "../App";
+import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import paranteLogo from "@/assets/paranter-logo.png";
 

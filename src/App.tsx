@@ -1,17 +1,16 @@
-import React, { createContext, useContext, useEffect, useState, Suspense, lazy, memo } from "react";
+import React, { Suspense, lazy, memo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { AuthLayout } from "@/components/AuthLayout";
+import AuthLayout from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePreloadComponents, useOptimizedRendering } from "@/hooks/usePerformance";
 import { useInstantPreload, useMaxPerformance } from "@/hooks/useMaxPerformance";
 import { preloadCriticalResources } from "@/hooks/useLazyComponent";
+import { useAuth } from "@/hooks/useAuth";
 
 // Optimized lazy loading with smart prefetching
 const Index = lazy(() => import("./pages/ParentDashboard"));
@@ -36,181 +35,13 @@ const queryClient = new QueryClient({
 // Preload critical resources immediately
 preloadCriticalResources();
 
-interface UserProfile {
-  id: string;
-  user_id: string;
-  email: string;
-  full_name?: string;
-  phone?: string;
-  avatar_url?: string;
-  role: 'admin' | 'teacher' | 'parent' | 'staff' | 'driver';
-  is_active: boolean;
-}
-
-interface AuthContextType {
-  session: Session | null;
-  user: User | null;
-  userProfile: UserProfile | null;
-  isLoading: boolean;
-  signOut: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Memoized for better performance
+const AppContent = memo(() => {
+  const { session, user, userProfile, isLoading } = useAuth();
   
   // Maximum performance optimizations
   useInstantPreload();
   useMaxPerformance();
-
-  useEffect(() => {
-    let mounted = true;
-    let authInitialized = false;
-    
-    // Ensure loading completes within 3 seconds maximum
-    const failsafeTimeout = setTimeout(() => {
-      if (mounted && !authInitialized) {
-        console.log('Failsafe: Setting loading to false');
-        setIsLoading(false);
-      }
-    }, 3000);
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state change:', event, session?.user?.id);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            
-            if (mounted) {
-              setUserProfile(profile);
-            }
-          } catch (error) {
-            console.error('Profile fetch error:', error);
-          }
-        } else {
-          if (mounted) {
-            setUserProfile(null);
-          }
-        }
-        
-        // Always set loading to false after auth state change
-        if (mounted) {
-          authInitialized = true;
-          setIsLoading(false);
-          clearTimeout(failsafeTimeout);
-        }
-      }
-    );
-
-    // Get initial session
-    const initializeAuth = async () => {
-      try {
-        console.log('Initializing auth...');
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        console.log('Initial session:', session?.user?.id || 'No session');
-        
-        if (session?.user) {
-          setSession(session);
-          setUser(session.user);
-          
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            
-            if (mounted) {
-              setUserProfile(profile);
-            }
-          } catch (profileError) {
-            console.error('Profile fetch error:', profileError);
-          }
-        } else {
-          // No session found
-          setSession(null);
-          setUser(null);
-          setUserProfile(null);
-        }
-        
-        // Always set loading to false after initialization
-        if (mounted) {
-          authInitialized = true;
-          setIsLoading(false);
-          clearTimeout(failsafeTimeout);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
-          authInitialized = true;
-          setIsLoading(false);
-          clearTimeout(failsafeTimeout);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-      clearTimeout(failsafeTimeout);
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const value = {
-    session,
-    user,
-    userProfile,
-    isLoading,
-    signOut
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Memoized for better performance
-const AppContent = memo(() => {
-  const { session, user, userProfile, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -267,9 +98,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
+          <AppContent />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

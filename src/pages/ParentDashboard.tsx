@@ -9,7 +9,7 @@ import { FeesCard } from "@/components/FeesCard";
 import { ExamScheduleCard } from "@/components/ExamScheduleCard";
 import { HomeworkCard } from "@/components/HomeworkCard";
 import { BottomNavigation } from "@/components/BottomNavigation";
-import { useAuth } from "@/App";
+import { useAuth } from "@/hooks/useAuth";
 import { parentService, StudentProfile, AttendanceData, FeeData, AnnouncementData } from "@/services/parentService";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
