@@ -45,27 +45,36 @@ const AppContent = memo(() => {
   useMaxPerformance();
 
   if (isLoading) {
+    console.log('App: Showing loading screen - isLoading:', isLoading);
     return <LoadingScreen />;
   }
 
   if (!session || !user || !userProfile) {
+    console.log('App: Showing auth layout - session:', !!session, 'user:', !!user, 'userProfile:', !!userProfile);
     return <AuthLayout />;
   }
 
   const getDashboardForRole = () => {
+    console.log('App: Getting dashboard for role:', userProfile?.role);
     // Ensure complete portal isolation - users only see their role's dashboard
     switch (userProfile.role) {
       case 'parent':
+        console.log('App: Loading ParentDashboard');
         return <ParentDashboard />;
       case 'teacher':
+        console.log('App: Loading TeacherDashboard');
         return <TeacherDashboard />;
       case 'admin':
+        console.log('App: Loading AdminDashboard');
         return <AdminDashboard />;
       case 'staff':
+        console.log('App: Loading FinancePortal');
         return <FinancePortal />;
       case 'driver':
+        console.log('App: Loading DriverPortal');
         return <DriverPortal />;
       default:
+        console.log('App: Loading default ParentDashboard for unknown role:', userProfile.role);
         // Default to parent portal for any unknown roles
         return <ParentDashboard />;
     }
