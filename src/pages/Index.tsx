@@ -113,40 +113,67 @@ const Index = () => {
         return (
           <div className="space-y-6">
             <AttendanceCard 
-              overallPercentage={studentData.attendance.overall}
-              subjects={studentData.attendance.subjects}
-              lastUpdated={studentData.attendance.lastUpdated}
+              attendance={[
+                { id: '1', student_id: 'demo-student', attendance_date: '2024-01-15', status: 'present', notes: '' },
+                { id: '2', student_id: 'demo-student', attendance_date: '2024-01-14', status: 'present', notes: '' },
+                { id: '3', student_id: 'demo-student', attendance_date: '2024-01-13', status: 'late', notes: '' },
+                { id: '4', student_id: 'demo-student', attendance_date: '2024-01-12', status: 'present', notes: '' },
+                { id: '5', student_id: 'demo-student', attendance_date: '2024-01-11', status: 'absent', notes: 'Sick' }
+              ]}
+              isLoading={false}
             />
             
             <GradesCard 
-              overallGPA={studentData.grades.gpa}
-              grades={studentData.grades.subjects}
-              recentExams={studentData.grades.recentExams}
+              assignments={[
+                { 
+                  id: '1', 
+                  title: 'Math Quiz 1', 
+                  subject: 'Mathematics', 
+                  due_date: '2024-01-10', 
+                  total_marks: 100,
+                  assignment_submissions: [{ id: '1', student_id: 'demo-student', marks_obtained: 85, submitted_at: '2024-01-09' }]
+                },
+                { 
+                  id: '2', 
+                  title: 'Science Lab Report', 
+                  subject: 'Science', 
+                  due_date: '2024-01-08', 
+                  total_marks: 50,
+                  assignment_submissions: [{ id: '2', student_id: 'demo-student', marks_obtained: 42, submitted_at: '2024-01-07' }]
+                }
+              ]}
+              isLoading={false}
             />
             
             <FeesCard 
-              totalDue={studentData.fees.totalDue}
-              nextDueDate={studentData.fees.nextDueDate}
-              fees={studentData.fees.breakdown}
-              onPayNow={handlePayFees}
-              onViewHistory={handleViewFeeHistory}
+              fees={[
+                { id: '1', fee_type: 'Tuition Fee', amount: 5000, due_date: '2024-02-01', status: 'pending', student_id: 'demo-student' },
+                { id: '2', fee_type: 'Transport Fee', amount: 1500, due_date: '2024-01-15', status: 'paid', student_id: 'demo-student', paid_date: '2024-01-10' }
+              ]}
+              isLoading={false}
             />
             
             <ExamScheduleCard 
-              upcomingExams={studentData.exams}
+              events={[
+                { id: '1', title: 'Math Final Exam', event_date: '2024-02-15', start_time: '09:00', event_type: 'exam', description: 'Final mathematics examination' },
+                { id: '2', title: 'Science Test', event_date: '2024-02-20', start_time: '14:00', event_type: 'test', description: 'Chapter 5-7 test' }
+              ]}
+              onViewEvent={(id) => console.log('View event:', id)}
             />
             
             <HomeworkCard 
-              assignments={studentData.assignments}
-              onViewAssignment={handleViewAssignment}
+              assignments={[
+                { id: '1', title: 'Math Homework Ch. 5', subject: 'Mathematics', due_date: '2024-01-25', description: 'Complete exercises 1-20' },
+                { id: '2', title: 'English Essay', subject: 'English', due_date: '2024-01-22', description: 'Write a 500-word essay on climate change' },
+                { id: '3', title: 'Science Project', subject: 'Science', due_date: '2024-01-18', description: 'Solar system model creation' }
+              ]}
+              students={[{ id: 'demo-student', full_name: 'Demo Student', student_id: 'STU001' }]}
+              onViewAssignment={(id) => console.log('View assignment:', id)}
             />
             
             <QuickActionsCard 
-              teacherName={studentData.teacher}
-              onMessageTeacher={() => handleQuickAction('Message Teacher')}
-              onCallTeacher={() => handleQuickAction('Call Teacher')}
-              onViewMessages={() => handleQuickAction('View Messages')}
-              onViewGrades={() => handleQuickAction('View Grades')}
+              students={[{ id: 'demo-student', full_name: 'Demo Student', student_id: 'STU001', grade_level: '10th', class_section: 'A' }]}
+              isLoading={false}
             />
           </div>
         );
@@ -155,7 +182,14 @@ const Index = () => {
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-foreground">{t('dashboard.schoolAnnouncements')}</h2>
-            <AnnouncementCard announcements={studentData.announcements} />
+            <AnnouncementCard 
+              announcements={[
+                { id: '1', title: 'School Holiday', description: 'School will be closed tomorrow', event_date: '2024-01-20', event_type: 'holiday', created_at: '2024-01-15' },
+                { id: '2', title: 'Parent-Teacher Meeting', description: 'Monthly meeting scheduled', event_date: '2024-01-25', event_type: 'event', created_at: '2024-01-10' },
+                { id: '3', title: 'Exam Schedule Released', description: 'Final exam dates announced', event_date: '2024-01-18', event_type: 'academic', created_at: '2024-01-16' }
+              ]} 
+              isLoading={false}
+            />
           </div>
         );
       
