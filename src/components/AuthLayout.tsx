@@ -107,7 +107,7 @@ const AuthLayout = () => {
     try {
       if (activeTab === 'login') {
         console.log('🔐 Starting login process...');
-        const result = await signIn(email, password);
+        const result = await signIn({ email, password });
         
         if (result.success) {
           console.log('✅ Login successful, auth state will handle redirect');
@@ -121,7 +121,12 @@ const AuthLayout = () => {
         }
       } else {
         console.log('📝 Starting signup process...');
-        const result = await signUp(email, password, fullName, selectedRole);
+        const result = await signUp({ 
+          email, 
+          password, 
+          fullName, 
+          role: selectedRole as 'parent' | 'teacher' | 'admin' | 'staff' | 'driver'
+        });
         
         if (result.success) {
           console.log('✅ Signup successful');
