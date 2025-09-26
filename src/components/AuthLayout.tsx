@@ -114,7 +114,7 @@ const AuthLayout = () => {
       setLoading(true);
 
       // Validate inputs
-      const emailValidation = emailSchema.safeParse(email);
+      const emailValidation = emailSchema.safeParse(email.trim());
       if (!emailValidation.success) {
         toast.error(emailValidation.error.issues[0].message);
         return;
@@ -126,7 +126,7 @@ const AuthLayout = () => {
           return;
         }
 
-        const authValidation = authSchema.safeParse({ email, password });
+        const authValidation = authSchema.safeParse({ email: email.trim(), password });
         if (!authValidation.success) {
           toast.error(authValidation.error.issues[0].message);
           return;
@@ -140,7 +140,7 @@ const AuthLayout = () => {
             emailRedirectTo: `${window.location.origin}/`,
             data: {
               full_name: fullName,
-              role: selectedRole
+              role: selectedRole || 'parent'
             }
           }
         });
@@ -159,7 +159,7 @@ const AuthLayout = () => {
       } else {
         // Login
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
 
