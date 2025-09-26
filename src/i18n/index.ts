@@ -2,7 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Translation resources
+// English translations
 const en = {
   "welcome": {
     "title": "Welcome to School Connect",
@@ -59,7 +59,8 @@ const en = {
   }
 };
 
-const kn = {
+// Kannada translations
+const kannada = {
   "welcome": {
     "title": "ಶಾಲಾ ಸಂಪರ್ಕಕ್ಕೆ ಸ್ವಾಗತ",
     "subtitle": "ಶಾಲಾ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆಯನ್ನು ಪ್ರವೇಶಿಸಲು ಮತ್ತು ನಿಮ್ಮ ಶೈಕ್ಷಣಿಕ ಸಮುದಾಯದೊಂದಿಗೆ ಸಂಪರ್ಕದಲ್ಲಿರಲು ನಿಮ್ಮ ಪೋರ್ಟಲ್ ಆಯ್ಕೆ ಮಾಡಿ"
@@ -115,10 +116,9 @@ const kn = {
   }
 };
 
-
 const resources = {
   en: { translation: en },
-  kn: { translation: kn }
+  kn: { translation: kannada }
 };
 
 i18n
