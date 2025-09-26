@@ -13,7 +13,8 @@ import { preloadCriticalResources } from "@/hooks/useLazyComponent";
 import { useAuth } from "@/hooks/useAuth";
 
 // Optimized lazy loading with smart prefetching
-const Index = lazy(() => import("./pages/ParentDashboard"));
+const Index = lazy(() => import("./pages/Index"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const FinancePortal = lazy(() => import("./pages/FinancePortal"));
@@ -55,7 +56,7 @@ const AppContent = memo(() => {
     // Ensure complete portal isolation - users only see their role's dashboard
     switch (userProfile.role) {
       case 'parent':
-        return <Index />;
+        return <ParentDashboard />;
       case 'teacher':
         return <TeacherDashboard />;
       case 'admin':
@@ -66,7 +67,7 @@ const AppContent = memo(() => {
         return <DriverPortal />;
       default:
         // Default to parent portal for any unknown roles
-        return <Index />;
+        return <ParentDashboard />;
     }
   };
 
