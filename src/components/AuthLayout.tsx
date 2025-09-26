@@ -9,7 +9,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import paranteLogo from "@/assets/paranter-logo.png";
 
 const roles = [
   {
@@ -150,7 +149,7 @@ const AuthLayout = () => {
       <header className="w-full border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <img src={paranteLogo} alt="Paranter Logo" className="h-10 w-10" />
+            <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-10 w-10" />
             <div>
               <h1 className="text-xl font-bold text-foreground">Paranter</h1>
               <p className="text-xs text-muted-foreground">Management System</p>
