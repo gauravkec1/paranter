@@ -18,17 +18,12 @@ export const LoadingScreen = () => {
       setProgress(100);
     }, 500);
 
-    // Emergency backup - if loading screen shows for more than 5 seconds, 
-    // something is wrong, so we force reload
-    const emergencyTimeout = setTimeout(() => {
-      console.error('Loading screen timeout - forcing page reload');
-      window.location.reload();
-    }, 5000);
+    // Remove the emergency timeout that was causing infinite reloads
+    // The auth system should handle timeouts properly now
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
-      clearTimeout(emergencyTimeout);
     };
   }, []);
 

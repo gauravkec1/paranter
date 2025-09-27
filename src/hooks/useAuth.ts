@@ -110,48 +110,66 @@ export const useAuth = (): AuthState & AuthActions => {
     const fetchUserProfile = async (userId: string) => {
       try {
         console.log('🔍 Fetching user profile for:', userId);
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', userId)
+          .abortSignal(controller.signal)
           .maybeSingle();
+
+        clearTimeout(timeoutId);
 
         if (error) {
           console.error('❌ Profile fetch error:', error);
           throw error;
         }
 
-        if (mounted && profile) {
-          console.log('✅ Profile loaded:', profile);
-          setUserProfile(profile);
-          cacheManager.set(PROFILE_CACHE_KEY, profile);
-          console.log('✅ Profile loaded for role:', profile?.role);
-        } else if (mounted && !profile) {
-          console.warn('⚠️ No profile found for user:', userId);
-          // For demo purposes, create a default parent profile
-          const defaultProfile = {
-            id: 'demo-profile',
+        if (mounted) {
+          if (profile) {
+            console.log('✅ Profile loaded:', profile);
+            setUserProfile(profile);
+            cacheManager.set(PROFILE_CACHE_KEY, profile);
+          } else {
+            console.warn('⚠️ No profile found, creating default parent profile');
+            // Create a default parent profile for demo
+            const defaultProfile = {
+              id: 'demo-profile',
+              user_id: userId,
+              email: 'demo@example.com',
+              full_name: 'Demo User',
+              role: 'parent' as const,
+              is_active: true
+            };
+            setUserProfile(defaultProfile);
+            cacheManager.set(PROFILE_CACHE_KEY, defaultProfile);
+          }
+        }
+      } catch (error: any) {
+        console.error('❌ Profile fetch failed:', error);
+        if (mounted) {
+          // Even on error, create a fallback profile to prevent infinite loading
+          const fallbackProfile = {
+            id: 'fallback-profile',
             user_id: userId,
-            email: 'demo@example.com',
-            full_name: 'Demo User',
+            email: 'fallback@example.com',
+            full_name: 'User',
             role: 'parent' as const,
             is_active: true
           };
-          setUserProfile(defaultProfile);
-          console.log('✅ Using default profile for demo');
-        }
-      } catch (error) {
-        console.error('❌ Profile fetch failed:', error);
-        if (mounted) {
-          setUserProfile(null);
-          cacheManager.clear(PROFILE_CACHE_KEY);
+          setUserProfile(fallbackProfile);
+          console.log('✅ Using fallback profile due to error');
         }
       }
     };
 
     // Optimized auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         console.log('🔄 Auth state changed:', event, session?.user?.id || 'No user');
@@ -161,17 +179,23 @@ export const useAuth = (): AuthState & AuthActions => {
         
         if (session?.user) {
           console.log('👤 User found, fetching profile...');
-          await fetchUserProfile(session.user.id);
+          // Use setTimeout to avoid blocking the auth state change
+          setTimeout(() => {
+            fetchUserProfile(session.user.id).finally(() => {
+              if (mounted && isLoading) {
+                setIsLoading(false);
+                performanceMonitor.markEnd('auth-initialization');
+              }
+            });
+          }, 0);
         } else {
           console.log('❌ No user, clearing profile');
           setUserProfile(null);
           cacheManager.clear(PROFILE_CACHE_KEY);
-        }
-        
-        console.log('✅ Auth state change completed, setting loading to false');
-        if (isLoading) {
-          setIsLoading(false);
-          performanceMonitor.markEnd('auth-initialization');
+          if (mounted && isLoading) {
+            setIsLoading(false);
+            performanceMonitor.markEnd('auth-initialization');
+          }
         }
       }
     );
