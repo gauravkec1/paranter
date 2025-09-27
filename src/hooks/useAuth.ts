@@ -69,7 +69,9 @@ export const useAuth = (): AuthState & AuthActions => {
         
         if (error) {
           console.error('❌ Session fetch error:', error);
-          throw error;
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          return;
         }
 
         if (!mounted) return;
@@ -83,10 +85,13 @@ export const useAuth = (): AuthState & AuthActions => {
           if (cachedProfile && cachedProfile.user_id === session.user.id) {
             console.log('✅ Using cached profile');
             setUserProfile(cachedProfile);
+            clearTimeout(timeoutId);
             setIsLoading(false);
             performanceMonitor.markEnd('auth-initialization');
           } else {
+            console.log('🔍 Fetching fresh profile...');
             await fetchUserProfile(session.user.id);
+            clearTimeout(timeoutId);
             setIsLoading(false);
             performanceMonitor.markEnd('auth-initialization');
           }
@@ -96,11 +101,10 @@ export const useAuth = (): AuthState & AuthActions => {
           setUser(null);
           setUserProfile(null);
           cacheManager.clear(PROFILE_CACHE_KEY);
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          performanceMonitor.markEnd('auth-initialization');
         }
-
-        clearTimeout(timeoutId);
-        setIsLoading(false);
-        performanceMonitor.markEnd('auth-initialization');
       } catch (error) {
         console.error('❌ Auth initialization failed:', error);
         if (mounted) {

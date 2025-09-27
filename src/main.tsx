@@ -14,10 +14,17 @@ if (!rootElement) {
   document.body.innerHTML = '<div style="padding: 20px; color: red;">ERROR: Root element not found!</div>';
 } else {
   console.log("✅ Creating React root...");
-  createRoot(rootElement).render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
-  console.log("✅ React app rendered");
+  const root = createRoot(rootElement);
+  
+  try {
+    root.render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+    console.log("✅ React app rendered successfully");
+  } catch (error) {
+    console.error("❌ Error rendering React app:", error);
+    rootElement.innerHTML = '<div style="padding: 20px; color: red;">ERROR: Failed to render app!</div>';
+  }
 }

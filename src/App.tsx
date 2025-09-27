@@ -124,7 +124,9 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <AppContent />
+          <div style={{ minHeight: '100vh', background: 'white' }}>
+            <AppContent />
+          </div>
           <Toaster />
           <Sonner />
         </TooltipProvider>
