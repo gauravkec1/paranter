@@ -79,12 +79,16 @@ export const useAuth = (): AuthState & AuthActions => {
           setSession(session);
           setUser(session.user);
           
-          // Use cached profile if available, otherwise fetch
+          // Use cached profile if available and valid, otherwise fetch
           if (cachedProfile && cachedProfile.user_id === session.user.id) {
             console.log('✅ Using cached profile');
             setUserProfile(cachedProfile);
+            setIsLoading(false);
+            performanceMonitor.markEnd('auth-initialization');
           } else {
             await fetchUserProfile(session.user.id);
+            setIsLoading(false);
+            performanceMonitor.markEnd('auth-initialization');
           }
         } else {
           console.log('ℹ️ No existing session found');
@@ -111,48 +115,15 @@ export const useAuth = (): AuthState & AuthActions => {
       try {
         console.log('🔍 Fetching user profile for:', userId);
         
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', userId)
-          .abortSignal(controller.signal)
-          .maybeSingle();
-
-        clearTimeout(timeoutId);
+          .single();
 
         if (error) {
           console.error('❌ Profile fetch error:', error);
-          throw error;
-        }
-
-        if (mounted) {
-          if (profile) {
-            console.log('✅ Profile loaded:', profile);
-            setUserProfile(profile);
-            cacheManager.set(PROFILE_CACHE_KEY, profile);
-          } else {
-            console.warn('⚠️ No profile found, creating default parent profile');
-            // Create a default parent profile for demo
-            const defaultProfile = {
-              id: 'demo-profile',
-              user_id: userId,
-              email: 'demo@example.com',
-              full_name: 'Demo User',
-              role: 'parent' as const,
-              is_active: true
-            };
-            setUserProfile(defaultProfile);
-            cacheManager.set(PROFILE_CACHE_KEY, defaultProfile);
-          }
-        }
-      } catch (error: any) {
-        console.error('❌ Profile fetch failed:', error);
-        if (mounted) {
-          // Even on error, create a fallback profile to prevent infinite loading
+          // Create fallback profile even on error
           const fallbackProfile = {
             id: 'fallback-profile',
             user_id: userId,
@@ -163,11 +134,43 @@ export const useAuth = (): AuthState & AuthActions => {
           };
           setUserProfile(fallbackProfile);
           console.log('✅ Using fallback profile due to error');
+          return;
         }
+
+        if (profile) {
+          console.log('✅ Profile loaded successfully:', profile);
+          setUserProfile(profile);
+          cacheManager.set(PROFILE_CACHE_KEY, profile);
+        } else {
+          console.warn('⚠️ No profile found, creating default');
+          const defaultProfile = {
+            id: 'demo-profile',
+            user_id: userId,
+            email: 'demo@example.com',
+            full_name: 'Demo User',
+            role: 'parent' as const,
+            is_active: true
+          };
+          setUserProfile(defaultProfile);
+          cacheManager.set(PROFILE_CACHE_KEY, defaultProfile);
+        }
+      } catch (error: any) {
+        console.error('❌ Profile fetch failed with exception:', error);
+        // Always provide a fallback to prevent infinite loading
+        const fallbackProfile = {
+          id: 'fallback-profile',
+          user_id: userId,
+          email: 'fallback@example.com',
+          full_name: 'User',
+          role: 'parent' as const,
+          is_active: true
+        };
+        setUserProfile(fallbackProfile);
+        console.log('✅ Using fallback profile due to exception');
       }
     };
 
-    // Optimized auth state listener
+    // Optimized auth state listener with proper error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -179,20 +182,26 @@ export const useAuth = (): AuthState & AuthActions => {
         
         if (session?.user) {
           console.log('👤 User found, fetching profile...');
-          // Use setTimeout to avoid blocking the auth state change
-          setTimeout(() => {
-            fetchUserProfile(session.user.id).finally(() => {
-              if (mounted && isLoading) {
+          fetchUserProfile(session.user.id)
+            .then(() => {
+              console.log('✅ Profile fetch completed, setting loading to false');
+              if (mounted) {
+                setIsLoading(false);
+                performanceMonitor.markEnd('auth-initialization');
+              }
+            })
+            .catch((error) => {
+              console.error('❌ Profile fetch failed in auth listener:', error);
+              if (mounted) {
                 setIsLoading(false);
                 performanceMonitor.markEnd('auth-initialization');
               }
             });
-          }, 0);
         } else {
-          console.log('❌ No user, clearing profile');
+          console.log('❌ No user, clearing profile and stopping loading');
           setUserProfile(null);
           cacheManager.clear(PROFILE_CACHE_KEY);
-          if (mounted && isLoading) {
+          if (mounted) {
             setIsLoading(false);
             performanceMonitor.markEnd('auth-initialization');
           }
