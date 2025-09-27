@@ -119,7 +119,7 @@ export const useAuth = (): AuthState & AuthActions => {
           .from('profiles')
           .select('*')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('❌ Profile fetch error:', error);

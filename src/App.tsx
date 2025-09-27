@@ -57,9 +57,15 @@ const AppContent = memo(() => {
     return <LoadingScreen />;
   }
 
-  if (!session || !user || !userProfile) {
-    console.log('AppContent: Showing auth layout - session:', !!session, 'user:', !!user, 'userProfile:', !!userProfile);
+  if (!session || !user) {
+    console.log('AppContent: No session or user, showing auth layout');
     return <AuthLayout />;
+  }
+
+  // If no userProfile yet but we have session/user, show loading
+  if (!userProfile) {
+    console.log('AppContent: Waiting for user profile...');
+    return <LoadingScreen />;
   }
 
   const getDashboardForRole = () => {
@@ -98,10 +104,10 @@ const AppContent = memo(() => {
             {/* All users get redirected to their role-specific dashboard */}
             <Route path="/" element={getDashboardForRole()} />
             {/* Strict portal isolation - only allow access to user's own role */}
-            <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" replace />} />
-            <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />} />
-            <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" replace />} />
-            <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" replace />} />
+            <Route path="/teacher" element={userProfile?.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" replace />} />
+            <Route path="/admin" element={userProfile?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />} />
+            <Route path="/finance" element={userProfile?.role === 'staff' ? <FinancePortal /> : <Navigate to="/" replace />} />
+            <Route path="/driver" element={userProfile?.role === 'driver' ? <DriverPortal /> : <Navigate to="/" replace />} />
             {/* Catch-all route for any unknown URLs */}
             <Route path="*" element={<NotFound />} />
           </Routes>
