@@ -121,8 +121,17 @@ export const performanceMonitor = {
   },
 
   markEnd: (name: string) => {
-    performance.mark(`${name}-end`);
-    performance.measure(name, `${name}-start`, `${name}-end`);
+    try {
+      performance.mark(`${name}-end`);
+      // Check if start mark exists before measuring
+      const marks = performance.getEntriesByName(`${name}-start`, 'mark');
+      if (marks.length > 0) {
+        performance.measure(name, `${name}-start`, `${name}-end`);
+      }
+    } catch (error) {
+      // Silently ignore performance measurement errors
+      console.debug(`Performance measurement failed for ${name}:`, error);
+    }
   },
 
   getMetrics: () => {

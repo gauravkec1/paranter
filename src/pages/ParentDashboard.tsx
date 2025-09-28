@@ -78,6 +78,8 @@ const ParentDashboard = () => {
   // Performance monitoring
   React.useEffect(() => {
     if (!authLoading && !dataLoading) {
+      // Start performance mark first time component loads
+      performanceMonitor.markStart('dashboard-ready');
       performanceMonitor.markEnd('dashboard-ready');
     }
   }, [authLoading, dataLoading]);
