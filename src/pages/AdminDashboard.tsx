@@ -1,15 +1,56 @@
-import { Users, School, DollarSign, Calendar, MessageSquare, BarChart3, UserCheck, BookOpen, Bell, TrendingUp, Settings, FileText } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { Users, School, DollarSign, Calendar, MessageSquare, BarChart3, UserCheck, BookOpen, Bell, TrendingUp, Settings, FileText, Shield, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface UserRoleCount {
+  role: string;
+  count: number;
+}
 
 const AdminDashboard = () => {
+  const { userProfile } = useAuth();
+  const [userCounts, setUserCounts] = useState<UserRoleCount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserCounts = async () => {
+      try {
+        const { data, error } = await supabase.rpc('count_users_by_role');
+        
+        if (error) {
+          console.error('Error fetching user counts:', error);
+          toast.error('Failed to fetch user statistics');
+          return;
+        }
+
+        setUserCounts(data || []);
+      } catch (error) {
+        console.error('Error in fetchUserCounts:', error);
+        toast.error('Failed to fetch user statistics');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserCounts();
+  }, []);
+
+  const getUserCount = (role: string) => {
+    const roleData = userCounts.find(item => item.role === role);
+    return roleData ? roleData.count : 0;
+  };
+
   const statsCards = [
     {
       title: "Total Students",
-      value: "1,247",
+      value: isLoading ? "..." : getUserCount('student').toString(),
       change: "+12%",
       icon: Users,
       color: "bg-primary",
@@ -17,27 +58,27 @@ const AdminDashboard = () => {
     },
     {
       title: "Teaching Staff",
-      value: "89",
+      value: isLoading ? "..." : getUserCount('teacher').toString(),
       change: "+3%", 
-      icon: UserCheck,
+      icon: GraduationCap,
       color: "bg-success",
       trend: "up"
     },
     {
-      title: "Monthly Revenue",
-      value: "₹8,45,000",
-      change: "+18%",
-      icon: DollarSign,
+      title: "Parents",
+      value: isLoading ? "..." : getUserCount('parent').toString(),
+      change: "+8%",
+      icon: Users,
       color: "bg-warning",
       trend: "up"
     },
     {
-      title: "Attendance Rate",
-      value: "94.2%",
-      change: "+2.1%",
-      icon: BarChart3,
+      title: "Staff Members",
+      value: isLoading ? "..." : getUserCount('staff').toString(),
+      change: "Stable",
+      icon: Shield,
       color: "bg-excellent",
-      trend: "up"
+      trend: "stable"
     }
   ];
 

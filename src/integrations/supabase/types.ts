@@ -634,6 +634,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_users_by_role: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          count: number
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
