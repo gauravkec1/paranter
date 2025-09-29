@@ -1,406 +1,376 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, EyeOff, X, Users, GraduationCap, Shield, CreditCard, Car, Phone } from 'lucide-react';
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  Users, 
+  GraduationCap, 
+  DollarSign, 
+  Car,
+  Shield,
+  Phone,
+  Mail,
+  KeyRound,
+  Building,
+  Eye,
+  EyeOff,
+  X
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
 
 const roles = [
   {
     id: 'parent',
-    title: 'roles.parent',
-    description: 'roles.parentDesc',
+    title: 'Parent Portal',
+    description: 'Track student progress, fees, and communicate with teachers',
     icon: Users,
-    color: 'bg-blue-500'
+    color: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+    path: '/'
   },
   {
-    id: 'teacher', 
-    title: 'roles.teacher',
-    description: 'roles.teacherDesc',
+    id: 'teacher',
+    title: 'Teacher Portal',
+    description: 'Manage classes, assignments, and student assessments',
     icon: GraduationCap,
-    color: 'bg-green-500'
+    color: 'bg-gradient-to-br from-emerald-500 to-teal-500',
+    path: '/teacher'
   },
   {
     id: 'admin',
-    title: 'roles.admin',
-    description: 'roles.adminDesc',
+    title: 'Admin Portal',
+    description: 'Complete school administration and management',
     icon: Shield,
-    color: 'bg-purple-500'
+    color: 'bg-gradient-to-br from-purple-500 to-violet-500',
+    path: '/admin'
   },
   {
     id: 'staff',
-    title: 'roles.staff',
-    description: 'roles.staffDesc', 
-    icon: CreditCard,
-    color: 'bg-orange-500'
+    title: 'Finance Portal',
+    description: 'Financial management, fees, and accounting',
+    icon: DollarSign,
+    color: 'bg-gradient-to-br from-orange-500 to-amber-500',
+    path: '/finance'
   },
   {
     id: 'driver',
-    title: 'roles.driver',
-    description: 'roles.driverDesc',
+    title: 'Driver Portal',
+    description: 'Transport management and route tracking',
     icon: Car,
-    color: 'bg-red-500'
+    color: 'bg-gradient-to-br from-green-500 to-lime-500',
+    path: '/driver'
   }
 ];
 
-const AuthLayout = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  const [activeTab, setActiveTab] = useState('login');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
-  // Form states
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  
+export const AuthLayout = () => {
   const { t } = useTranslation();
-  const { signIn, signUp } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: ''
+  });
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
-    setShowModal(true);
-    setActiveTab('login');
-    // Reset form
-    setEmail('');
-    setPassword('');
-    setFullName('');
+    setShowLoginModal(true);
+    setFormData({ email: '', password: '', fullName: '' });
+    setIsSignup(false);
+    setShowPassword(false);
   };
 
   const handleCloseModal = () => {
-    setShowModal(false);
+    setShowLoginModal(false);
     setSelectedRole('');
-    setActiveTab('login');
-    setLoading(false);
-    // Reset form
-    setEmail('');
-    setPassword('');
-    setFullName('');
+    setFormData({ email: '', password: '', fullName: '' });
+    setIsSignup(false);
+    setShowPassword(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email.trim() || !password.trim()) {
-      toast.error(t('auth.emailRequired'));
+  const handleAuth = async () => {
+    if (!selectedRole) {
+      toast.error('Please select your role');
       return;
     }
 
-    if (activeTab === 'signup' && !fullName.trim()) {
-      toast.error(t('auth.fullNameRequired'));
+    if (!formData.email || !formData.password) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    if (password.length < 6) {
-      toast.error(t('auth.passwordTooShort'));
+    if (isSignup && !formData.fullName) {
+      toast.error('Please enter your full name');
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      if (activeTab === 'login') {
-        console.log('🔐 Starting login process...');
-        const result = await signIn({ email, password });
-        
-        if (result.success) {
-          console.log('✅ Login successful, auth state will handle redirect');
-          toast.success(t('auth.loginSuccessful'));
-          handleCloseModal();
-          // The AuthProvider will handle the redirect automatically
+      const redirectUrl = `${window.location.origin}/`;
+      
+      if (isSignup) {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              full_name: formData.fullName,
+              role: selectedRole
+            }
+          }
+        });
+
+        if (error) {
+          toast.error(error.message);
         } else {
-          console.error('❌ Login failed:', result.error);
-          setLoading(false);
-          toast.error(result.error || t('auth.loginFailed'));
+          toast.success('Account created! Please check your email for verification.');
+          setShowLoginModal(false);
         }
       } else {
-        console.log('📝 Starting signup process...');
-        const result = await signUp({ 
-          email, 
-          password, 
-          fullName, 
-          role: selectedRole as 'parent' | 'teacher' | 'admin' | 'staff' | 'driver'
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
         });
-        
-        if (result.success) {
-          console.log('✅ Signup successful');
-          setLoading(false);
-          toast.success(t('auth.accountCreated'));
-          setActiveTab('login');
-          setPassword('');
-          setFullName('');
+
+        if (error) {
+          toast.error(error.message);
         } else {
-          console.error('❌ Signup failed:', result.error);
-          setLoading(false);
-          toast.error(result.error || 'Registration failed. Please try again.');
+          toast.success('Login successful!');
+          setShowLoginModal(false);
         }
       }
-    } catch (error: any) {
-      console.error('❌ Auth error:', error);
-      setLoading(false);
-      toast.error(t('auth.connectionError'));
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background-secondary to-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background-secondary to-muted/20">
       {/* Header */}
-      <header className="w-full border-b border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-10 w-10" />
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Paranter</h1>
-              <p className="text-xs text-muted-foreground">Management System</p>
-            </div>
+      <header className="p-6 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-primary to-primary-glow rounded-xl shadow-lg">
+            <Building className="h-8 w-8 text-primary-foreground" />
           </div>
-          <LanguageSwitcher />
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              School Connect
+            </h1>
+            <p className="text-sm text-muted-foreground">Secure Portal Access</p>
+          </div>
         </div>
+        <LanguageSwitcher />
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              {t('welcome.title')}
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Role Selection */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Select Your Portal
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t('welcome.subtitle')}
+            <p className="text-lg text-muted-foreground">
+              Choose your portal to access the school management system
             </p>
           </div>
 
-          {/* Role Selection Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {roles.map((role) => {
-              const IconComponent = role.icon;
-              return (
-                <Card 
-                  key={role.id}
-                  className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-primary/50 bg-card/80 backdrop-blur-sm"
-                  onClick={() => handleRoleSelect(role.id)}
-                >
-                  <CardContent className="p-6 text-center">
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${role.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">{t(role.title)}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{t(role.description)}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-12">
+            {roles.map((role) => (
+              <Card
+                key={role.id}
+                className="cursor-pointer transition-all duration-300 border-2 hover:shadow-xl hover:scale-105 border-border hover:border-primary/50 bg-gradient-to-br from-card to-background/50 backdrop-blur-sm animate-fade-in"
+                onClick={() => handleRoleSelect(role.id)}
+              >
+                <CardContent className="p-6 text-center">
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl ${role.color} flex items-center justify-center shadow-lg transition-transform hover:scale-110`}>
+                    <role.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">{role.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{role.description}</p>
+                  <div className="mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                    >
+                      Login
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
-      </main>
 
-      {/* Auth Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-md mx-auto bg-card rounded-lg shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col">
-            {/* Close Button */}
-            <button
-              onClick={handleCloseModal}
-              className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
-              <X className="h-6 w-6" />
-              <span className="sr-only">Close</span>
-            </button>
-
-            {/* Modal Content */}
-            <div className="flex flex-col max-h-[90vh]">
-              {/* Header */}
-              <div className="p-6 pb-4 text-center border-b border-border/50">
-                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  {roles.find(r => r.id === selectedRole)?.icon && 
-                    React.createElement(roles.find(r => r.id === selectedRole)!.icon, { 
-                      className: "h-8 w-8 text-primary" 
-                    })
-                  }
+          {/* Login Modal */}
+          <Dialog open={showLoginModal} onOpenChange={handleCloseModal}>
+            <DialogContent className="sm:max-w-md bg-gradient-to-br from-card to-background/80 backdrop-blur-xl border-0 shadow-2xl animate-scale-in">
+              <DialogHeader className="text-center space-y-4">
+                
+                <div className={`w-20 h-20 mx-auto rounded-xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center shadow-lg`}>
+                  {(() => {
+                    const role = roles.find(r => r.id === selectedRole);
+                    if (role?.icon) {
+                      const IconComponent = role.icon;
+                      return <IconComponent className="h-10 w-10 text-white" />;
+                    }
+                    return null;
+                  })()}
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {t(roles.find(r => r.id === selectedRole)?.title || 'roles.parent')}
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  {t('auth.enterCredentials')}
+                
+                <DialogTitle className="text-2xl text-foreground">
+                  {roles.find(r => r.id === selectedRole)?.title?.replace('Portal', 'Login')}
+                </DialogTitle>
+                
+                <p className="text-muted-foreground">
+                  {isSignup ? 'Create your account' : 'Enter your credentials to access your portal'}
                 </p>
-              </div>
+              </DialogHeader>
 
-              {/* Form Content */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="p-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
-                      <TabsTrigger value="signup">{t('auth.signup')}</TabsTrigger>
-                    </TabsList>
+              <div className="space-y-6 mt-6">
+                <Tabs value={isSignup ? 'signup' : 'login'} onValueChange={(value) => setIsSignup(value === 'signup')}>
+                  <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                    <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      Login
+                    </TabsTrigger>
+                    <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      Sign Up
+                    </TabsTrigger>
+                  </TabsList>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <TabsContent value="login" className="space-y-4 mt-0">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">{t('auth.email')}</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="your@email.com"
-                            required
-                            disabled={loading}
-                            className="w-full"
-                            autoComplete="email"
-                          />
-                        </div>
+                  <TabsContent value="login" className="space-y-4 mt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="modal-email" className="text-foreground font-medium">
+                        Email / Phone / School ID
+                      </Label>
+                      <Input
+                        id="modal-email"
+                        type="text"
+                        placeholder="Enter email, phone, or school ID"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="h-12"
+                      />
+                    </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="password">{t('auth.password')}</Label>
-                          <div className="relative">
-                            <Input
-                              id="password"
-                              type={showPassword ? "text" : "password"}
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              required
-                              disabled={loading}
-                              className="w-full pr-10"
-                              autoComplete="current-password"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
-                          disabled={loading}
+                    <div className="space-y-2">
+                      <Label htmlFor="modal-password" className="text-foreground font-medium">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="modal-password"
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Enter your password"
+                          value={formData.password}
+                          onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                          className="h-12 pr-12"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                          onClick={() => setShowPassword(!showPassword)}
                         >
-                          {loading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                              {t('auth.pleaseWait')}
-                            </>
-                          ) : (
-                            t('auth.login')
-                          )}
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
-                      </TabsContent>
+                      </div>
+                    </div>
+                  </TabsContent>
 
-                      <TabsContent value="signup" className="space-y-4 mt-0">
-                        <div className="space-y-2">
-                          <Label htmlFor="fullName">{t('auth.fullName')}</Label>
-                          <Input
-                            id="fullName"
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Your Full Name"
-                            required
-                            disabled={loading}
-                            className="w-full"
-                            autoComplete="name"
-                          />
-                        </div>
+                  <TabsContent value="signup" className="space-y-4 mt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="modal-fullName" className="text-foreground font-medium">
+                        Full Name
+                      </Label>
+                      <Input
+                        id="modal-fullName"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                        className="h-12"
+                      />
+                    </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="signupEmail">{t('auth.email')}</Label>
-                          <Input
-                            id="signupEmail"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="your@email.com"
-                            required
-                            disabled={loading}
-                            className="w-full"
-                            autoComplete="email"
-                          />
-                        </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="modal-email-signup" className="text-foreground font-medium">
+                        Email / Phone / School ID
+                      </Label>
+                      <Input
+                        id="modal-email-signup"
+                        type="text"
+                        placeholder="Enter email, phone, or school ID"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="h-12"
+                      />
+                    </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="signupPassword">{t('auth.password')}</Label>
-                          <div className="relative">
-                            <Input
-                              id="signupPassword"
-                              type={showPassword ? "text" : "password"}
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              required
-                              disabled={loading}
-                              className="w-full pr-10"
-                              autoComplete="new-password"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
-                          disabled={loading}
+                    <div className="space-y-2">
+                      <Label htmlFor="modal-password-signup" className="text-foreground font-medium">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="modal-password-signup"
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Create a strong password"
+                          value={formData.password}
+                          onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                          className="h-12 pr-12"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                          onClick={() => setShowPassword(!showPassword)}
                         >
-                          {loading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                              {t('auth.pleaseWait')}
-                            </>
-                          ) : (
-                            t('auth.createAccount')
-                          )}
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
-                      </TabsContent>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
-                      {/* Additional Actions */}
-                      {activeTab === 'login' && (
-                        <div className="space-y-3 pt-4 border-t border-border/50">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full"
-                            disabled={loading}
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            {t('auth.loginWithOTP')}
-                          </Button>
-                          
-                          <div className="text-center">
-                            <button
-                              type="button"
-                              className="text-sm text-primary hover:underline"
-                              disabled={loading}
-                            >
-                              {t('auth.forgotPassword')}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </form>
-                  </Tabs>
+                <Button
+                  onClick={handleAuth}
+                  disabled={isLoading}
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <KeyRound className="h-5 w-5 mr-2" />
+                  {isLoading ? 'Please wait...' : (isSignup ? 'Create Account' : 'Login')}
+                </Button>
+
+                <div className="flex flex-col space-y-3">
+                  <Button variant="outline" className="w-full h-10">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Login with OTP
+                  </Button>
+                  
+                  <Button variant="link" className="text-primary hover:text-primary/80 h-auto p-0">
+                    Forgot Password?
+                  </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      )}
+      </div>
     </div>
   );
 };
-
-export default AuthLayout;

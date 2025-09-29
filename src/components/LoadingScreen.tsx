@@ -1,53 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Building } from 'lucide-react';
+import React from 'react';
+import { Building, Loader2 } from 'lucide-react';
 
 export const LoadingScreen = () => {
-  const [progress, setProgress] = useState(60);
-
-  useEffect(() => {
-    // Fast progress animation
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) return 100;
-        return prev + 20;
-      });
-    }, 50);
-
-    // Force complete after short time
-    const timeout = setTimeout(() => {
-      setProgress(100);
-    }, 500);
-
-    // Remove the emergency timeout that was causing infinite reloads
-    // The auth system should handle timeouts properly now
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center space-y-4">
-        {/* Minimal Logo */}
-        <div className="w-12 h-12 mx-auto rounded-lg flex items-center justify-center">
-          <img src="/src/assets/paranter-logo.png" alt="Paranter Logo" className="h-12 w-12" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background-secondary to-muted/20 flex items-center justify-center">
+      <div className="text-center space-y-8">
+        {/* Logo Animation */}
+        <div className="relative">
+          <div className="w-24 h-24 mx-auto p-6 bg-gradient-to-br from-primary to-primary-glow rounded-3xl shadow-2xl animate-pulse">
+            <Building className="h-12 w-12 text-primary-foreground" />
+          </div>
+          <div className="absolute inset-0 w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary/20 to-primary-glow/20 animate-ping"></div>
         </div>
 
-        {/* Minimal Text */}
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Paranter</h1>
-          <p className="text-xs text-muted-foreground">Loading...</p>
+        {/* Text */}
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            School Management System
+          </h1>
+          <p className="text-lg text-muted-foreground">Initializing your portal...</p>
         </div>
 
-        {/* Ultra-minimal Progress */}
-        <div className="w-48 mx-auto">
-          <div className="h-1 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary rounded-full transition-all duration-100"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
+        {/* Loading Indicator */}
+        <div className="flex items-center justify-center space-x-3">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-64 mx-auto">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary to-primary-glow rounded-full transition-all duration-1000 ease-out" style={{ width: '90%' }}></div>
           </div>
         </div>
       </div>

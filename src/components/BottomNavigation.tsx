@@ -1,7 +1,6 @@
 import { Home, Bell, MessageCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation } from "react-i18next";
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -10,11 +9,11 @@ interface BottomNavigationProps {
   notificationCount?: number;
 }
 
-const getNavigationItems = (t: any) => [
-  { id: 'home', label: t('dashboard.home'), icon: Home },
-  { id: 'announcements', label: t('dashboard.announcements'), icon: Bell },
-  { id: 'messages', label: t('dashboard.messages'), icon: MessageCircle },
-  { id: 'profile', label: t('dashboard.profile'), icon: User },
+const navigationItems = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'announcements', label: 'Announcements', icon: Bell },
+  { id: 'messages', label: 'Messages', icon: MessageCircle },
+  { id: 'profile', label: 'Profile', icon: User },
 ];
 
 export const BottomNavigation = ({ 
@@ -23,8 +22,6 @@ export const BottomNavigation = ({
   messageCount = 0,
   notificationCount = 0 
 }: BottomNavigationProps) => {
-  const { t } = useTranslation();
-  const navigationItems = getNavigationItems(t);
   const getBadgeCount = (id: string) => {
     switch (id) {
       case 'messages':
