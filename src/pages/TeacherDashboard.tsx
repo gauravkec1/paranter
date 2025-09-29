@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,67 +32,12 @@ import {
   Presentation,
   GraduationCap
 } from "lucide-react";
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export default function TeacherDashboard() {
-  const { userProfile } = useAuth();
-  const [studentCount, setStudentCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStudentCount = async () => {
-      if (!userProfile?.user_id) return;
-      
-      try {
-        // Get teacher's classes first
-        const { data: teacherClasses, error: classError } = await supabase
-          .from('classes')
-          .select('grade_level, section')
-          .eq('teacher_id', userProfile.user_id);
-
-        if (classError) {
-          console.error('Error fetching teacher classes:', classError);
-          toast.error('Failed to fetch class information');
-          return;
-        }
-
-        // Count students in those classes
-        let totalStudents = 0;
-        if (teacherClasses && teacherClasses.length > 0) {
-          for (const classInfo of teacherClasses) {
-            const { count, error: countError } = await supabase
-              .from('students')
-              .select('*', { count: 'exact', head: true })
-              .eq('grade_level', classInfo.grade_level)
-              .eq('class_section', classInfo.section)
-              .eq('is_active', true);
-
-            if (countError) {
-              console.error('Error counting students:', countError);
-            } else {
-              totalStudents += count || 0;
-            }
-          }
-        }
-
-        setStudentCount(totalStudents);
-      } catch (error) {
-        console.error('Error in fetchStudentCount:', error);
-        toast.error('Failed to fetch student count');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStudentCount();
-  }, [userProfile]);
-
   const stats = [
     {
       title: "Total Students",
-      value: isLoading ? "..." : studentCount.toString(),
+      value: "142",
       change: "+5 this week",
       changeType: "positive",
       icon: Users,
@@ -231,7 +175,7 @@ export default function TeacherDashboard() {
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   Teacher Dashboard
                 </h1>
-                <p className="text-muted-foreground text-lg">Welcome back, {userProfile?.full_name || 'Teacher'}</p>
+                <p className="text-muted-foreground text-lg">Welcome back, Ms. Anderson</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -249,9 +193,9 @@ export default function TeacherDashboard() {
                 <Settings className="h-4 w-4" />
               </Button>
               <Avatar className="ring-2 ring-primary/20 ring-offset-2">
-                <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.full_name} />
+                <AvatarImage src="/placeholder-avatar.jpg" alt="Ms. Anderson" />
                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
-                  {userProfile?.full_name?.split(' ').map(n => n[0]).join('') || 'T'}
+                  MA
                 </AvatarFallback>
               </Avatar>
             </div>
