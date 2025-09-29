@@ -8,6 +8,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { toast } from "sonner";
 import Index from "./pages/Index";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -56,6 +57,28 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('Failed to load user profile');
+        return null;
+      }
+      
+      return profile;
+    } catch (error) {
+      console.error('Unexpected error fetching profile:', error);
+      toast.error('An unexpected error occurred');
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -64,13 +87,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
+          const profile = await fetchProfile(session.user.id);
           setUserProfile(profile);
         } else {
           setUserProfile(null);
@@ -81,23 +98,16 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle()
-          .then(({ data: profile }) => {
-            setUserProfile(profile);
-            setIsLoading(false);
-          });
-      } else {
-        setIsLoading(false);
+        const profile = await fetchProfile(session.user.id);
+        setUserProfile(profile);
       }
+      
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
