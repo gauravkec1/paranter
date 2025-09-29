@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import Index from "./pages/Index";
@@ -15,54 +17,163 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string>('');
+interface UserProfile {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name?: string;
+  phone?: string;
+  avatar_url?: string;
+  role: 'admin' | 'teacher' | 'parent' | 'staff' | 'driver';
+  is_active: boolean;
+}
+
+interface AuthContextType {
+  session: Session | null;
+  user: User | null;
+  userProfile: UserProfile | null;
+  isLoading: boolean;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          
+          setUserProfile(profile);
+        } else {
+          setUserProfile(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
 
-    return () => clearTimeout(timer);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle()
+          .then(({ data: profile }) => {
+            setUserProfile(profile);
+            setIsLoading(false);
+          });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogin = (role: string) => {
-    setUserRole(role);
-    setIsAuthenticated(true);
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserRole('');
+  const value = {
+    session,
+    user,
+    userProfile,
+    isLoading,
+    signOut
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+const AppContent = () => {
+  const { session, user, userProfile, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!isAuthenticated) {
-    return <AuthLayout onLogin={handleLogin} />;
+  if (!session || !user || !userProfile) {
+    return <AuthLayout />;
   }
 
+  const getDashboardForRole = () => {
+    switch (userProfile.role) {
+      case 'parent':
+        return <Index />;
+      case 'teacher':
+        return <TeacherDashboard />;
+      case 'admin':
+        return <AdminDashboard />;
+      case 'staff':
+        return <FinancePortal />;
+      case 'driver':
+        return <DriverPortal />;
+      default:
+        return <Index />;
+    }
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={getDashboardForRole()} />
+        <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
+        <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
+        <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
+        <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/teacher" element={<TeacherDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/finance" element={<FinancePortal />} />
-            <Route path="/driver" element={<DriverPortal />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
