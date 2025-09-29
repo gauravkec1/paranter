@@ -35,6 +35,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { passwordChangeSchema } from '@/lib/validation';
 
 interface ProfileData {
   name: string;
@@ -91,17 +92,25 @@ export const ProfileManagement = () => {
   };
 
   const handlePasswordChange = () => {
-    if (passwords.new !== passwords.confirm) {
-      toast.error('New passwords do not match');
-      return;
+    try {
+      const validatedData = passwordChangeSchema.parse({
+        currentPassword: passwords.current,
+        newPassword: passwords.new,
+        confirmPassword: passwords.confirm
+      });
+      
+      // Password change logic would go here
+      toast.success('Password changed successfully');
+      setPasswords({ current: '', new: '', confirm: '' });
+      setShowPasswordChange(false);
+    } catch (error: any) {
+      if (error.errors) {
+        const firstError = error.errors[0];
+        toast.error(firstError.message);
+      } else {
+        toast.error('Invalid password format');
+      }
     }
-    if (passwords.new.length < 8) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
-    toast.success('Password changed successfully');
-    setPasswords({ current: '', new: '', confirm: '' });
-    setShowPasswordChange(false);
   };
 
   const handleAvatarUpload = () => {

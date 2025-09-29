@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
+import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validation';
 import { 
   Users, 
   GraduationCap, 
@@ -80,6 +81,7 @@ export const AuthLayout = () => {
     password: '',
     fullName: ''
   });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
@@ -103,14 +105,34 @@ export const AuthLayout = () => {
       return;
     }
 
-    if (!formData.email || !formData.password) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    // Clear previous validation errors
+    setValidationErrors({});
 
-    if (isSignup && !formData.fullName) {
-      toast.error('Please enter your full name');
-      return;
+    // Validate form data
+    try {
+      if (isSignup) {
+        const validatedData = signupSchema.parse({
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.fullName,
+          role: selectedRole
+        });
+      } else {
+        const validatedData = loginSchema.parse({
+          email: formData.email,
+          password: formData.password
+        });
+      }
+    } catch (error: any) {
+      if (error.errors) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          newErrors[err.path[0]] = err.message;
+        });
+        setValidationErrors(newErrors);
+        toast.error('Please fix the form errors');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -120,18 +142,19 @@ export const AuthLayout = () => {
       
       if (isSignup) {
         const { error } = await supabase.auth.signUp({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              full_name: formData.fullName,
+              full_name: formData.fullName.trim(),
               role: selectedRole
             }
           }
         });
 
         if (error) {
+          // Don't log sensitive information
           toast.error(error.message);
         } else {
           toast.success('Account created! Please check your email for verification.');
@@ -139,11 +162,12 @@ export const AuthLayout = () => {
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password
         });
 
         if (error) {
+          // Don't log sensitive information
           toast.error(error.message);
         } else {
           toast.success('Login successful!');
@@ -151,6 +175,7 @@ export const AuthLayout = () => {
         }
       }
     } catch (error) {
+      // Generic error message to avoid information disclosure
       toast.error('An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -261,8 +286,12 @@ export const AuthLayout = () => {
                         placeholder="Enter email, phone, or school ID"
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        className="h-12"
+                        className={`h-12 ${validationErrors.email ? 'border-red-500' : ''}`}
+                        maxLength={255}
                       />
+                      {validationErrors.email && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -276,7 +305,8 @@ export const AuthLayout = () => {
                           placeholder="Enter your password"
                           value={formData.password}
                           onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                          className="h-12 pr-12"
+                          className={`h-12 pr-12 ${validationErrors.password ? 'border-red-500' : ''}`}
+                          maxLength={128}
                         />
                         <Button
                           type="button"
@@ -288,6 +318,9 @@ export const AuthLayout = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
                       </div>
+                      {validationErrors.password && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors.password}</p>
+                      )}
                     </div>
                   </TabsContent>
 
@@ -302,8 +335,12 @@ export const AuthLayout = () => {
                         placeholder="Enter your full name"
                         value={formData.fullName}
                         onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                        className="h-12"
+                        className={`h-12 ${validationErrors.fullName ? 'border-red-500' : ''}`}
+                        maxLength={100}
                       />
+                      {validationErrors.fullName && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors.fullName}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -316,8 +353,12 @@ export const AuthLayout = () => {
                         placeholder="Enter email, phone, or school ID"
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        className="h-12"
+                        className={`h-12 ${validationErrors.email ? 'border-red-500' : ''}`}
+                        maxLength={255}
                       />
+                      {validationErrors.email && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -331,7 +372,8 @@ export const AuthLayout = () => {
                           placeholder="Create a strong password"
                           value={formData.password}
                           onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                          className="h-12 pr-12"
+                          className={`h-12 pr-12 ${validationErrors.password ? 'border-red-500' : ''}`}
+                          maxLength={128}
                         />
                         <Button
                           type="button"
@@ -343,6 +385,9 @@ export const AuthLayout = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
                       </div>
+                      {validationErrors.password && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors.password}</p>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>

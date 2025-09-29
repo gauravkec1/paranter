@@ -32,6 +32,7 @@ import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { Geolocation } from '@capacitor/geolocation';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { toast } from 'sonner';
 
 const DriverPortal = () => {
   const [isOnline, setIsOnline] = useState(false);
@@ -78,10 +79,10 @@ const DriverPortal = () => {
             lng: position.coords.longitude
           });
           
-          // Simulate API call to update location
-          console.log('Location updated:', position.coords);
+          // Location updated successfully - no logging for security
         } catch (error) {
-          console.error('Error getting location:', error);
+          // Location error handled silently for security
+          toast.error('Unable to get current location');
         }
       }, 15000); // Update every 15 seconds
     }
@@ -134,7 +135,7 @@ const DriverPortal = () => {
       emergency: "Emergency situation. Immediate help required"
     };
 
-    console.log(`${type.toUpperCase()} ALERT:`, alertMessages[type]);
+    // Alert sent securely without logging sensitive information
     
     // Send notification to admin/parents
     LocalNotifications.schedule({
