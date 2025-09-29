@@ -377,6 +377,8 @@ export type Database = {
           is_active: boolean
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          role_updated_at: string | null
+          role_updated_by: string | null
           updated_at: string
           user_id: string
         }
@@ -389,6 +391,8 @@ export type Database = {
           is_active?: boolean
           phone?: string | null
           role: Database["public"]["Enums"]["user_role"]
+          role_updated_at?: string | null
+          role_updated_by?: string | null
           updated_at?: string
           user_id: string
         }
@@ -401,6 +405,8 @@ export type Database = {
           is_active?: boolean
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          role_updated_at?: string | null
+          role_updated_by?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -628,7 +634,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      update_user_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          target_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       attendance_status: "present" | "absent" | "late" | "half_day"
@@ -640,7 +656,7 @@ export type Database = {
         | "fee"
         | "event"
         | "general"
-      user_role: "admin" | "teacher" | "parent" | "staff"
+      user_role: "admin" | "teacher" | "parent" | "staff" | "driver"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -778,7 +794,7 @@ export const Constants = {
         "event",
         "general",
       ],
-      user_role: ["admin", "teacher", "parent", "staff"],
+      user_role: ["admin", "teacher", "parent", "staff", "driver"],
     },
   },
 } as const

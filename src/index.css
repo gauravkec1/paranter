@@ -2,15 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ultra-performance CSS */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-display: swap;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  contain: layout style paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Critical path optimization */
+.critical-above-fold {
+  contain: layout;
+  content-visibility: auto;
+}
+
+/* Instant transitions */
+button, input, select, textarea {
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+/* Remove all unnecessary animations for speed */
+.no-animation * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Critical instant feedback only */
+.instant-feedback {
+  transition: opacity 0.05s;
+}
+
 /* School-Parent Connect Design System */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    /* Brand Colors */
-    --primary: 214 100% 60%;
+    /* Brand Colors - Paranter Theme */
+    --primary: 260 80% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 214 95% 75%;
+    --primary-glow: 260 70% 65%;
+    --secondary: 220 80% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --accent-gold: 45 100% 60%;
     
     /* Background System */
     --background: 0 0% 98%;
@@ -195,7 +243,44 @@
     from {
       opacity: 0;
       transform: scale(0.95);
-    }
+  }
+  
+  /* Modal and overlay fixes */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal-content {
+    position: relative;
+    z-index: 101;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* Prevent background scroll when modal is open */
+  body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  /* High z-index for dropdowns */
+  [data-radix-popper-content-wrapper] {
+    z-index: 50 !important;
+  }
+  
+  /* Dropdown background fix */
+  [role="menu"], [role="listbox"] {
+    background: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    z-index: 50 !important;
+  }
     to {
       opacity: 1;
       transform: scale(1);

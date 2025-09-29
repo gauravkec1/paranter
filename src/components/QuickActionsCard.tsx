@@ -1,74 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone, FileText, GraduationCap } from "lucide-react";
+import { MessageSquare, GraduationCap, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
+
+interface Student {
+  id: string;
+  full_name: string;
+  student_id: string;
+  grade_level?: string;
+  class_section?: string;
+}
 
 interface QuickActionsCardProps {
-  teacherName: string;
-  onMessageTeacher: () => void;
-  onCallTeacher: () => void;
-  onViewMessages: () => void;
-  onViewGrades: () => void;
+  students: Student[];
+  isLoading: boolean;
 }
 
 export const QuickActionsCard = ({ 
-  teacherName, 
-  onMessageTeacher, 
-  onCallTeacher,
-  onViewMessages,
-  onViewGrades 
+  students, 
+  isLoading 
 }: QuickActionsCardProps) => {
+  const { t } = useTranslation();
+
+  if (isLoading) {
+    return (
+      <Card className="card-hover">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center">
+            <Users className="h-5 w-5 mr-2" />
+            {t('dashboard.quickActions')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            <div className="h-20 bg-muted rounded"></div>
+            <div className="h-16 bg-muted rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="card-hover">
       <CardHeader className="pb-3">
-        <CardTitle>Quick Contact</CardTitle>
-        <p className="text-sm text-muted-foreground">{teacherName}</p>
-        <p className="text-xs text-muted-foreground">Directly message or call</p>
+        <CardTitle className="flex items-center">
+          <Users className="h-5 w-5 mr-2" />
+          {t('dashboard.quickActions')}
+        </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-3">
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 hover:bg-primary/10 hover:text-primary border-primary/20"
-            onClick={onMessageTeacher}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Message
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 hover:bg-primary/10 hover:text-primary border-primary/20"
-            onClick={onCallTeacher}
-          >
-            <Phone className="h-4 w-4 mr-2" />
-            Call
-          </Button>
+      <CardContent className="space-y-4">
+        {/* Student Information */}
+        <div className="p-3 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground mb-2">{t('dashboard.yourChildren')}</p>
+          {students.map((student) => (
+            <div key={student.id} className="flex items-center justify-between mb-2 last:mb-0">
+              <div>
+                <p className="font-medium text-foreground text-sm">{student.full_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {student.grade_level} {student.class_section}
+                </p>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {student.student_id}
+              </Badge>
+            </div>
+          ))}
         </div>
-        
-        <div className="pt-2 border-t border-card-border">
-          <h4 className="text-sm font-semibold text-foreground mb-2">Quick Actions</h4>
-          <div className="space-y-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-primary hover:bg-primary/10"
-              onClick={onViewMessages}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              View Messages
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-primary hover:bg-primary/10"
-              onClick={onViewGrades}
-            >
-              <GraduationCap className="h-4 w-4 mr-2" />
-              View Grades
-            </Button>
-          </div>
+
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="ghost"
+            className="h-auto p-3 flex flex-col items-center space-y-1"
+          >
+            <MessageSquare className="h-6 w-6" />
+            <span className="text-xs">{t('dashboard.viewMessages')}</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            className="h-auto p-3 flex flex-col items-center space-y-1"
+          >
+            <GraduationCap className="h-6 w-6" />
+            <span className="text-xs">{t('dashboard.viewGrades')}</span>
+          </Button>
         </div>
       </CardContent>
     </Card>
