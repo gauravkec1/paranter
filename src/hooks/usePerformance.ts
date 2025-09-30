@@ -3,39 +3,46 @@ import { useEffect, useState } from 'react';
 // Preload critical components for faster navigation
 export const usePreloadComponents = () => {
   useEffect(() => {
-    // Preload commonly accessed routes in the background
+    // Immediate preloading for instant navigation
     const preloadComponents = async () => {
       try {
-        // Preload based on user role patterns
+        // Preload all critical components immediately
         const promises = [
           import('../pages/TeacherDashboard'),
           import('../pages/AdminDashboard'),
           import('../pages/FinancePortal'),
           import('../pages/DriverPortal'),
+          import('../pages/Index'),
         ];
         
-        // Preload components without blocking the UI
-        await Promise.allSettled(promises);
+        // Start preloading immediately
+        Promise.allSettled(promises);
       } catch (error) {
-        // Silently fail - preloading is just an optimization
+        // Silently fail
       }
     };
 
-    // Start preloading after a short delay to not impact initial load
-    const timer = setTimeout(preloadComponents, 2000);
-    return () => clearTimeout(timer);
+    // Immediate execution - no delay
+    preloadComponents();
   }, []);
 };
 
 // Enhanced performance hooks
 export const useOptimizedRendering = () => {
   useEffect(() => {
-    // Enable hardware acceleration for smooth animations
+    // Aggressive performance optimizations
     document.body.style.willChange = 'transform';
+    document.body.style.transform = 'translateZ(0)'; // Force hardware acceleration
+    document.body.style.backfaceVisibility = 'hidden';
     
-    // Cleanup on unmount
+    // Reduce paint and layout costs
+    document.body.style.contain = 'layout style paint';
+    
     return () => {
       document.body.style.willChange = 'auto';
+      document.body.style.transform = '';
+      document.body.style.backfaceVisibility = '';
+      document.body.style.contain = '';
     };
   }, []);
 };

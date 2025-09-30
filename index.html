@@ -8,6 +8,25 @@
     <meta name="author" content="School-Parent Connect" />
     <meta name="keywords" content="school, parent, student, attendance, grades, education, communication" />
 
+    <!-- Performance optimizations -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://skpztjfdgeilrfjtquwp.supabase.co" crossorigin>
+    
+    <!-- Critical CSS inlined -->
+    <style>
+      html { font-display: swap; }
+      body { margin: 0; padding: 0; }
+      #root { min-height: 100vh; }
+      .loading { background: #f8fafc; }
+    </style>
+    
+    <!-- Lovable Badge Fix -->
+    <link rel="stylesheet" href="/lovable-badge-fix.css">
+    
+    <!-- Modal & Performance Fixes -->
+    <link rel="stylesheet" href="/modal-fixes.css">
+
     <meta property="og:title" content="School-Parent Connect - Parent Dashboard" />
     <meta property="og:description" content="Stay connected with your child's education through real-time attendance tracking, grade monitoring, and direct teacher communication" />
     <meta property="og:type" content="website" />
@@ -19,7 +38,23 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root" class="loading"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

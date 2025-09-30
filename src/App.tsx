@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, Suspense, lazy } from "react";
+import React, { createContext, useContext, useEffect, useState, Suspense, lazy, memo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,12 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthLayout } from "@/components/AuthLayout";
+import AuthLayout from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePreloadComponents, useOptimizedRendering } from "@/hooks/usePerformance";
+import { useInstantPreload, useMaxPerformance } from "@/hooks/useMaxPerformance";
+import { preloadCriticalResources } from "@/hooks/useLazyComponent";
 
-// Lazy load dashboard components for better performance
+// Optimized lazy loading with smart prefetching
 const Index = lazy(() => import("./pages/Index"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -19,7 +21,20 @@ const FinancePortal = lazy(() => import("./pages/FinancePortal"));
 const DriverPortal = lazy(() => import("./pages/DriverPortal"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+// Optimized QueryClient with performance settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Preload critical resources immediately
+preloadCriticalResources();
 
 interface UserProfile {
   id: string;
@@ -59,52 +74,103 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Maximum performance optimizations
+  useInstantPreload();
+  useMaxPerformance();
 
   useEffect(() => {
+    let mounted = true;
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          const { data: profile } = await supabase
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          } catch (error) {
+            console.error('Profile fetch error:', error);
+          }
+        } else {
+          if (mounted) {
+            setUserProfile(null);
+          }
+        }
+      }
+    );
+
+    // Get initial session and set loading to false after - OPTIMIZED
+    const initializeAuth = async () => {
+      try {
+        // Set immediate timeout to prevent blocking
+        const timeoutPromise = new Promise(resolve => 
+          setTimeout(() => resolve({ data: { session: null } }), 2000)
+        );
+        
+        const sessionPromise = supabase.auth.getSession();
+        
+        // Race between session fetch and timeout
+        const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        const session = result?.data?.session;
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Defer profile fetch to not block initial render
+          const profilePromise = supabase
             .from('profiles')
             .select('*')
             .eq('user_id', session.user.id)
             .maybeSingle();
+            
+          // Set loading to false immediately, fetch profile async
+          setIsLoading(false);
           
-          setUserProfile(profile);
+          try {
+            const { data: profile } = await profilePromise;
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          } catch (profileError) {
+            console.error('Profile fetch error:', profileError);
+          }
         } else {
-          setUserProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle()
-          .then(({ data: profile }) => {
-            setUserProfile(profile);
+          if (mounted) {
+            setUserProfile(null);
             setIsLoading(false);
-          });
-      } else {
-        setIsLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Always set loading to false even on error
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -126,7 +192,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-const AppContent = () => {
+// Memoized for better performance
+const AppContent = memo(() => {
   const { session, user, userProfile, isLoading } = useAuth();
 
   if (isLoading) {
@@ -157,7 +224,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
-        <div className="transition-all duration-300 ease-in-out">
+        <div className="critical-above-fold">
           <Routes>
             <Route path="/" element={getDashboardForRole()} />
             <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
@@ -171,7 +238,7 @@ const AppContent = () => {
       </Suspense>
     </BrowserRouter>
   );
-};
+});
 
 const App = () => {
   return (
