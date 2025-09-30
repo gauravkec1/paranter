@@ -1,0 +1,107 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "print": "Print",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "total": "Total",
+    "date": "Date",
+    "time": "Time",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "navigation": {
+    "home": "Home",
+    "teacher": "Teacher Portal",
+    "admin": "Admin Portal", 
+    "finance": "Finance Portal",
+    "driver": "Driver Portal",
+    "parent": "Parent Portal"
+  },
+  "auth": {
+    "loginTitle": "School Management System",
+    "selectRole": "Select Your Role",
+    "enterCredentials": "Enter your credentials to access the portal",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "password": "Password",
+    "schoolId": "School ID",
+    "loginButton": "Login",
+    "forgotPassword": "Forgot Password?",
+    "or": "OR",
+    "loginWithOTP": "Login with OTP"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "quickStats": "Quick Statistics",
+    "recentActivity": "Recent Activity",
+    "announcements": "Announcements",
+    "notifications": "Notifications"
+  },
+  "student": {
+    "students": "Students",
+    "studentName": "Student Name",
+    "rollNumber": "Roll Number",
+    "class": "Class",
+    "section": "Section",
+    "attendance": "Attendance",
+    "grades": "Grades",
+    "performance": "Performance"
+  },
+  "teacher": {
+    "teachers": "Teachers",
+    "subjects": "Subjects",
+    "classes": "Classes",
+    "lessons": "Lessons",
+    "assignments": "Assignments",
+    "examinations": "Examinations"
+  },
+  "finance": {
+    "fees": "Fees",
+    "payments": "Payments",
+    "expenses": "Expenses",
+    "revenue": "Revenue",
+    "outstanding": "Outstanding",
+    "reports": "Financial Reports",
+    "analytics": "Financial Analytics",
+    "paymentMethods": "Payment Methods",
+    "dueDate": "Due Date",
+    "amount": "Amount",
+    "receipt": "Receipt"
+  },
+  "transport": {
+    "buses": "Buses",
+    "routes": "Routes",
+    "drivers": "Drivers",
+    "tracking": "Live Tracking",
+    "location": "Location",
+    "eta": "Estimated Time",
+    "emergency": "Emergency",
+    "maintenance": "Maintenance"
+  },
+  "communication": {
+    "messages": "Messages",
+    "announcements": "Announcements",
+    "notifications": "Notifications",
+    "circulars": "Circulars",
+    "broadcast": "Broadcast",
+    "sendMessage": "Send Message",
+    "recipient": "Recipient",
+    "subject": "Subject",
+    "message": "Message"
+  }
+}
