@@ -30,7 +30,7 @@ export const LoadingScreen = () => {
         {/* Progress Bar */}
         <div className="w-64 mx-auto">
           <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-primary to-primary-glow rounded-full animate-pulse" style={{ width: '60%' }}></div>
+            <div className="h-full bg-gradient-to-r from-primary to-primary-glow rounded-full transition-all duration-1000 ease-out" style={{ width: '90%' }}></div>
           </div>
         </div>
       </div>
