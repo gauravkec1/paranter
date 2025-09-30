@@ -60,103 +60,81 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mounted, setMounted] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (isMounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            try {
-              const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
-              
-              if (isMounted) {
-                if (error) {
-                  // Handle profile fetch error silently
-                  setUserProfile(null);
-                } else {
-                  setUserProfile(profile);
-                }
-              }
-            } catch (profileError) {
-              if (isMounted) {
-                setUserProfile(null);
-              }
-            }
-          } else {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        // Only synchronous state updates here to prevent deadlocks
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Defer profile fetching to prevent auth callback deadlocks
+        if (session?.user) {
+          setTimeout(() => {
             if (isMounted) {
-              setUserProfile(null);
+              fetchUserProfile(session.user.id);
             }
-          }
-          
+          }, 0);
+        } else {
+          setUserProfile(null);
           if (isMounted) {
             setIsLoading(false);
           }
         }
-      } catch (error) {
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        setTimeout(() => {
+          if (isMounted) {
+            fetchUserProfile(session.user.id);
+          }
+        }, 0);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Profile fetching function
+    const fetchUserProfile = async (userId: string) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
         if (isMounted) {
+          if (error) {
+            setUserProfile(null);
+          } else {
+            setUserProfile(profile);
+          }
+          setIsLoading(false);
+        }
+      } catch (profileError) {
+        if (isMounted) {
+          setUserProfile(null);
           setIsLoading(false);
         }
       }
     };
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          try {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-            
-            if (isMounted) {
-              if (error) {
-                setUserProfile(null);
-              } else {
-                setUserProfile(profile);
-              }
-            }
-          } catch (profileError) {
-            if (isMounted) {
-              setUserProfile(null);
-            }
-          }
-        } else {
-          if (isMounted) {
-            setUserProfile(null);
-          }
-        }
-        
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    );
-
-    getInitialSession();
-
     // Cleanup function
     return () => {
       isMounted = false;
-      setMounted(false);
       subscription.unsubscribe();
     };
   }, []);
