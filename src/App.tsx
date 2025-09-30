@@ -117,12 +117,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         // Set immediate timeout to prevent blocking
         const timeoutPromise = new Promise(resolve => 
-          setTimeout(() => resolve({ data: { session: null } }), 2000)
+          setTimeout(() => resolve({ data: { session: null } }), 500)
         );
         
         const sessionPromise = supabase.auth.getSession();
         
-        // Race between session fetch and timeout
+        // Race between session fetch and timeout for instant response
         const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
         const session = result?.data?.session;
         

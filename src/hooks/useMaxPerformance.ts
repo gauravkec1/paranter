@@ -15,7 +15,9 @@ export const usePerformanceMonitor = () => {
         });
       });
       
-      observer.observe({ entryTypes: ['navigation'] });
+      if (typeof PerformanceObserver !== 'undefined') {
+        observer.observe({ entryTypes: ['navigation'] });
+      }
       
       return () => observer.disconnect();
     }
@@ -25,18 +27,24 @@ export const usePerformanceMonitor = () => {
 // Instant component preloader
 export const useInstantPreload = () => {
   React.useEffect(() => {
-    // Preload everything immediately
-    const preloadAll = () => {
-      const criticalImports = [
-        () => import('../pages/Index'),
-        () => import('../pages/TeacherDashboard'),
-        () => import('../pages/AdminDashboard'),
-        () => import('../pages/FinancePortal'),
-        () => import('../pages/DriverPortal'),
-      ];
-      
-      // Fire all imports simultaneously
-      criticalImports.forEach(importFn => importFn());
+    // Preload everything immediately and silently
+    const preloadAll = async () => {
+      try {
+        const criticalImports = [
+          () => import('../pages/Index'),
+          () => import('../pages/TeacherDashboard'),
+          () => import('../pages/AdminDashboard'),
+          () => import('../pages/FinancePortal'),
+          () => import('../pages/DriverPortal'),
+        ];
+        
+        // Fire all imports simultaneously without blocking
+        Promise.all(criticalImports.map(importFn => 
+          importFn().catch(() => {}) // Silent fail for preloads
+        ));
+      } catch (error) {
+        // Silent fail - preloading shouldn't block the app
+      }
     };
     
     // Execute immediately
@@ -55,10 +63,14 @@ export const useMaxPerformance = () => {
     // Disable smooth scrolling for instant response
     document.documentElement.style.scrollBehavior = 'auto';
     
+    // Enable hardware acceleration
+    document.body.style.transform = 'translateZ(0)';
+    
     return () => {
       document.body.style.willChange = '';
       document.body.style.contain = '';
       document.body.style.isolation = '';
+      document.body.style.transform = '';
       document.documentElement.style.scrollBehavior = '';
     };
   }, []);
