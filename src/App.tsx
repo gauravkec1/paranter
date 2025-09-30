@@ -177,7 +177,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 // --- PROTECTED ROUTE COMPONENT ---
 // This component protects routes based on user role
 const ProtectedRoute = ({ requiredRole }: { requiredRole: UserProfile['role'] }) => {
-    const { userProfile } = useAuth();
+    const { userProfile, isLoading } = useAuth();
+
+    // Show loading while checking auth
+    if (isLoading) {
+      return <LoadingScreen />;
+    }
 
     // If the user's role matches the required role, render the child routes (Outlet)
     // Otherwise, navigate them back to their default dashboard
