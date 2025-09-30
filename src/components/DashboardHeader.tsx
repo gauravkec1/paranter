@@ -1,10 +1,16 @@
-import { Bell, User, GraduationCap, Shield, Wallet, Bus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import { Bell, User, GraduationCap, Shield, DollarSign, Car, Menu } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { ProfileManagement } from "@/components/ProfileManagement";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
   studentName: string;
@@ -17,63 +23,93 @@ export const DashboardHeader = ({
   parentName, 
   notificationCount = 0 
 }: DashboardHeaderProps) => {
-  const { t } = useTranslation();
+  const handlePortalNavigation = (portal: string) => {
+    const routes = {
+      teacher: '/teacher',
+      admin: '/admin', 
+      finance: '/finance',
+      driver: '/driver'
+    };
+    
+    if (routes[portal as keyof typeof routes]) {
+      window.location.href = routes[portal as keyof typeof routes];
+    }
+  };
+
+  const portalButtons = [
+    { key: 'teacher', label: 'Teacher', icon: GraduationCap },
+    { key: 'admin', label: 'Admin', icon: Shield },
+    { key: 'finance', label: 'Finance', icon: DollarSign },
+    { key: 'driver', label: 'Driver', icon: Car }
+  ];
+
   return (
-    <header className="bg-card border-b border-card-border sticky top-0 z-50">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/api/placeholder/40/40" alt={parentName} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {parentName.charAt(0)}
+    <header className="bg-gradient-to-r from-primary via-primary to-primary-glow text-primary-foreground p-4 shadow-xl backdrop-blur-sm border-b border-primary-foreground/10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-14 w-14 ring-3 ring-primary-foreground/20 ring-offset-2 ring-offset-primary shadow-lg">
+            <AvatarImage src="/placeholder-avatar.jpg" alt={parentName} />
+            <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground font-bold text-lg">
+              {parentName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">{t('common.dashboard')}</h2>
-            <p className="text-sm text-muted-foreground">{studentName}'s Progress</p>
+            <h2 className="font-bold text-xl tracking-tight">{parentName}</h2>
+            <p className="text-primary-foreground/90 text-sm font-medium">Parent of {studentName}</p>
+            <Badge variant="secondary" className="mt-1 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20">
+              Active Parent
+            </Badge>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           <LanguageSwitcher />
-          <Link to="/teacher">
-            <Button variant="outline" size="sm">
-              <GraduationCap className="h-4 w-4 mr-2" />
-              {t('navigation.teacher')}
-            </Button>
-          </Link>
-          <Link to="/admin">
-            <Button variant="outline" size="sm" className="text-success border-success hover:bg-success hover:text-success-foreground">
-              <Shield className="h-4 w-4 mr-2" />
-              {t('navigation.admin')}
-            </Button>
-          </Link>
-          <Link to="/finance">
-            <Button variant="outline" size="sm" className="text-warning border-warning hover:bg-warning hover:text-warning-foreground">
-              <Wallet className="h-4 w-4 mr-2" />
-              {t('navigation.finance')}
-            </Button>
-          </Link>
-          <Link to="/driver">
-            <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
-              <Bus className="h-4 w-4 mr-2" />
-              {t('navigation.driver')}
-            </Button>
-          </Link>
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs notification-badge"
+          
+          {/* Desktop Portal Navigation */}
+          <div className="hidden lg:flex items-center space-x-2">
+            {portalButtons.map(({ key, label, icon: Icon }) => (
+              <Button
+                key={key}
+                variant="ghost"
+                size="sm"
+                onClick={() => handlePortalNavigation(key)}
+                className="text-primary-foreground hover:bg-primary-foreground/15 transition-all duration-200 hover:scale-105"
               >
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </Badge>
-            )}
-          </Button>
-          <Button variant="ghost" size="sm">
-            <User className="h-5 w-5" />
-          </Button>
+                <Icon className="h-4 w-4 mr-2" />
+                {label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Mobile Portal Navigation */}
+          <div className="lg:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary-foreground hover:bg-primary-foreground/15"
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {portalButtons.map(({ key, label, icon: Icon }) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => handlePortalNavigation(key)}
+                    className="cursor-pointer"
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {label} Portal
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <NotificationCenter notificationCount={notificationCount} />
+          <ProfileManagement />
         </div>
       </div>
     </header>
