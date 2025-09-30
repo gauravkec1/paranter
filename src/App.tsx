@@ -59,39 +59,104 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start as true
+  const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(true);
 
   useEffect(() => {
-    // Single source of truth for auth state
+    let isMounted = true;
+    
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (isMounted) {
+                if (error) {
+                  // Handle profile fetch error silently
+                  setUserProfile(null);
+                } else {
+                  setUserProfile(profile);
+                }
+              }
+            } catch (profileError) {
+              if (isMounted) {
+                setUserProfile(null);
+              }
+            }
+          } else {
+            if (isMounted) {
+              setUserProfile(null);
+            }
+          }
+          
+          if (isMounted) {
+            setIsLoading(false);
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (!isMounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (error) {
-            console.error('Error fetching profile:', error);
-            setUserProfile(null);
-          } else {
-            setUserProfile(profile);
+          try {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (isMounted) {
+              if (error) {
+                setUserProfile(null);
+              } else {
+                setUserProfile(profile);
+              }
+            }
+          } catch (profileError) {
+            if (isMounted) {
+              setUserProfile(null);
+            }
           }
         } else {
-          setUserProfile(null);
+          if (isMounted) {
+            setUserProfile(null);
+          }
         }
         
-        // Loading is finished after the first check
-        setIsLoading(false); 
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     );
 
-    // Cleanup subscription on unmount
+    getInitialSession();
+
+    // Cleanup function
     return () => {
+      isMounted = false;
+      setMounted(false);
       subscription.unsubscribe();
     };
   }, []);
@@ -139,50 +204,40 @@ const AppContent = () => {
     return <LoadingScreen />;
   }
   
-  const getRedirectPathForRole = () => {
-    switch (userProfile.role) {
-      case 'parent':
-        return '/dashboard'; // Parent's main view
-      case 'teacher':
-        return '/teacher';
-      case 'admin':
-        return '/admin';
-      case 'staff': // Finance
-        return '/finance';
-      case 'driver':
-        return '/driver';
-      default:
-        return '/dashboard'; // Fallback
-    }
-  };
-
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
-          {/* Redirect from root to the user's specific dashboard */}
-          <Route path="/" element={<Navigate to={getRedirectPathForRole()} replace />} />
+          {/* Role-specific routes with proper redirects */}
+          <Route path="/" element={
+            userProfile?.role === 'parent' ? <Index /> : 
+            <Navigate to={`/${userProfile?.role === 'staff' ? 'finance' : userProfile?.role}`} replace />
+          } />
 
-          {/* Role-specific routes wrapped in protection */}
-          <Route path="/dashboard" element={<Index />} />
+          {/* Parent dashboard route */}
+          <Route element={<ProtectedRoute requiredRole="parent" />}>
+            <Route path="/dashboard" element={<Index />} />
+          </Route>
 
+          {/* Teacher routes */}
           <Route element={<ProtectedRoute requiredRole="teacher" />}>
             <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>
           
+          {/* Admin routes */}
           <Route element={<ProtectedRoute requiredRole="admin" />}>
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
 
+          {/* Finance staff routes */}
           <Route element={<ProtectedRoute requiredRole="staff" />}>
             <Route path="/finance" element={<FinancePortal />} />
           </Route>
           
+          {/* Driver routes */}
           <Route element={<ProtectedRoute requiredRole="driver" />}>
             <Route path="/driver" element={<DriverPortal />} />
           </Route>
-
-          {/* Add other specific routes for all users here, e.g., /profile, /settings */}
 
           {/* Catch-all 404 route */}
           <Route path="*" element={<NotFound />} />
