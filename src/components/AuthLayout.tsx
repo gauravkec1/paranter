@@ -215,17 +215,9 @@ export const AuthLayout = () => {
           </div>
 
           {/* Login Modal */}
-          <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+          <Dialog open={showLoginModal} onOpenChange={handleCloseModal}>
             <DialogContent className="sm:max-w-md bg-gradient-to-br from-card to-background/80 backdrop-blur-xl border-0 shadow-2xl animate-scale-in">
-              <DialogHeader className="text-center space-y-4 relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute -top-2 -right-2 h-8 w-8 p-0 hover:bg-muted"
-                  onClick={handleCloseModal}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <DialogHeader className="text-center space-y-4">
                 
                 <div className={`w-20 h-20 mx-auto rounded-xl ${roles.find(r => r.id === selectedRole)?.color} flex items-center justify-center shadow-lg`}>
                   {(() => {
