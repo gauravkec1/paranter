@@ -3,14 +3,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 // Lazy load dashboard components for better performance
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(() => import("./pages/Index")); // Parent Dashboard
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const FinancePortal = lazy(() => import("./pages/FinancePortal"));
@@ -19,6 +19,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+// --- TYPE DEFINITIONS ---
 interface UserProfile {
   id: string;
   user_id: string;
@@ -38,6 +39,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+// --- AUTH CONTEXT & HOOK ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -48,6 +50,7 @@ export const useAuth = () => {
   return context;
 };
 
+// --- AUTH PROVIDER ---
 interface AuthProviderProps {
   children: React.ReactNode;
 }
@@ -56,95 +59,39 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Start as true
 
   useEffect(() => {
-    let mounted = true;
-
-    const fetchUserProfile = async (userId: string) => {
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .maybeSingle();
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return null;
-        }
-        
-        return profile;
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-    };
-
-    // Set up auth state listener
+    // Single source of truth for auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setUserProfile(null);
+          } else {
             setUserProfile(profile);
-            setIsLoading(false);
           }
         } else {
-          if (mounted) {
-            setUserProfile(null);
-            setIsLoading(false);
-          }
+          setUserProfile(null);
         }
+        
+        // Loading is finished after the first check
+        setIsLoading(false); 
       }
     );
 
-    // Get initial session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setUserProfile(profile);
-            setIsLoading(false);
-          }
-        } else {
-          if (mounted) {
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
+    // Cleanup subscription on unmount
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -153,13 +100,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     await supabase.auth.signOut();
   };
 
-  const value = {
-    session,
-    user,
-    userProfile,
-    isLoading,
-    signOut
-  };
+  const value = { session, user, userProfile, isLoading, signOut };
 
   return (
     <AuthContext.Provider value={value}>
@@ -168,31 +109,50 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-const AppContent = () => {
-  const { session, user, userProfile, isLoading } = useAuth();
+// --- PROTECTED ROUTE COMPONENT ---
+// This component protects routes based on user role
+const ProtectedRoute = ({ requiredRole }: { requiredRole: UserProfile['role'] }) => {
+    const { userProfile } = useAuth();
 
+    // If the user's role matches the required role, render the child routes (Outlet)
+    // Otherwise, navigate them back to their default dashboard
+    return userProfile?.role === requiredRole ? <Outlet /> : <Navigate to="/" replace />;
+};
+
+
+// --- APP CONTENT & ROUTING ---
+const AppContent = () => {
+  const { session, userProfile, isLoading } = useAuth();
+
+  // Show loading screen until the initial auth check is complete
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!session || !user || !userProfile) {
+  // If there is no session, show the authentication layout (login/signup)
+  if (!session) {
     return <AuthLayout />;
   }
 
-  const getDashboardForRole = () => {
+  // If there is a session but no profile yet (still fetching or failed), show loading
+  if (!userProfile) {
+    return <LoadingScreen />;
+  }
+  
+  const getRedirectPathForRole = () => {
     switch (userProfile.role) {
       case 'parent':
-        return <Index />;
+        return '/dashboard'; // Parent's main view
       case 'teacher':
-        return <TeacherDashboard />;
+        return '/teacher';
       case 'admin':
-        return <AdminDashboard />;
-      case 'staff':
-        return <FinancePortal />;
+        return '/admin';
+      case 'staff': // Finance
+        return '/finance';
       case 'driver':
-        return <DriverPortal />;
+        return '/driver';
       default:
-        return <Index />;
+        return '/dashboard'; // Fallback
     }
   };
 
@@ -200,12 +160,31 @@ const AppContent = () => {
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
-          <Route path="/" element={getDashboardForRole()} />
-          <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
-          <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
-          <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
-          <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Redirect from root to the user's specific dashboard */}
+          <Route path="/" element={<Navigate to={getRedirectPathForRole()} replace />} />
+
+          {/* Role-specific routes wrapped in protection */}
+          <Route path="/dashboard" element={<Index />} />
+
+          <Route element={<ProtectedRoute requiredRole="teacher" />}>
+            <Route path="/teacher" element={<TeacherDashboard />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredRole="staff" />}>
+            <Route path="/finance" element={<FinancePortal />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute requiredRole="driver" />}>
+            <Route path="/driver" element={<DriverPortal />} />
+          </Route>
+
+          {/* Add other specific routes for all users here, e.g., /profile, /settings */}
+
+          {/* Catch-all 404 route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -213,6 +192,7 @@ const AppContent = () => {
   );
 };
 
+// --- MAIN APP COMPONENT ---
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
