@@ -133,6 +133,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background-secondary pb-20">
       <DashboardHeader 
+        studentName={studentData.studentName}
+        parentName={studentData.parentName}
         notificationCount={3}
       />
       
