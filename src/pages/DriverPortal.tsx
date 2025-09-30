@@ -78,7 +78,8 @@ const DriverPortal = () => {
             lng: position.coords.longitude
           });
           
-          // Update location silently (removed console.log for security)
+          // Simulate API call to update location
+          console.log('Location updated:', position.coords);
         } catch (error) {
           console.error('Error getting location:', error);
         }
@@ -133,7 +134,7 @@ const DriverPortal = () => {
       emergency: "Emergency situation. Immediate help required"
     };
 
-    // Alert sent silently (removed console.log for security)
+    console.log(`${type.toUpperCase()} ALERT:`, alertMessages[type]);
     
     // Send notification to admin/parents
     LocalNotifications.schedule({
