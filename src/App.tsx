@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import Index from "./pages/Index";
@@ -15,54 +16,58 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleLogin = (role: string) => {
-    setUserRole(role);
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserRole('');
-  };
+const AppContent = () => {
+  const { session, user, userProfile, isLoading } = useAuth();
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!isAuthenticated) {
-    return <AuthLayout onLogin={handleLogin} />;
+  if (!session || !user || !userProfile) {
+    return <AuthLayout />;
   }
 
+  const getDashboardForRole = () => {
+    switch (userProfile.role) {
+      case 'parent':
+        return <Index />;
+      case 'teacher':
+        return <TeacherDashboard />;
+      case 'admin':
+        return <AdminDashboard />;
+      case 'staff':
+        return <FinancePortal />;
+      case 'driver':
+        return <DriverPortal />;
+      default:
+        return <Index />;
+    }
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={getDashboardForRole()} />
+        <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
+        <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
+        <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
+        <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/teacher" element={<TeacherDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/finance" element={<FinancePortal />} />
-            <Route path="/driver" element={<DriverPortal />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -1,10 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, User, GraduationCap, Shield, DollarSign, Car, Menu } from "lucide-react";
+import { Bell, User, GraduationCap, Shield, DollarSign, Car, Menu, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ProfileManagement } from "@/components/ProfileManagement";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,16 +15,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
-  studentName: string;
-  parentName: string;
   notificationCount?: number;
 }
 
 export const DashboardHeader = ({ 
-  studentName, 
-  parentName, 
   notificationCount = 0 
 }: DashboardHeaderProps) => {
+  const { userProfile, signOut } = useAuth();
+  
   const handlePortalNavigation = (portal: string) => {
     const routes = {
       teacher: '/teacher',
@@ -36,6 +36,22 @@ export const DashboardHeader = ({
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Error logging out');
+    }
+  };
+
+  if (!userProfile) {
+    return null;
+  }
+
+  const displayName = userProfile.full_name || userProfile.email;
+  const roleLabel = userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1);
+
   const portalButtons = [
     { key: 'teacher', label: 'Teacher', icon: GraduationCap },
     { key: 'admin', label: 'Admin', icon: Shield },
@@ -48,16 +64,16 @@ export const DashboardHeader = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Avatar className="h-14 w-14 ring-3 ring-primary-foreground/20 ring-offset-2 ring-offset-primary shadow-lg">
-            <AvatarImage src="/placeholder-avatar.jpg" alt={parentName} />
+            <AvatarImage src={userProfile.avatar_url || "/placeholder-avatar.jpg"} alt={displayName} />
             <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground font-bold text-lg">
-              {parentName.split(' ').map(n => n[0]).join('')}
+              {displayName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="font-bold text-xl tracking-tight">{parentName}</h2>
-            <p className="text-primary-foreground/90 text-sm font-medium">Parent of {studentName}</p>
+            <h2 className="font-bold text-xl tracking-tight">{displayName}</h2>
+            <p className="text-primary-foreground/90 text-sm font-medium">{roleLabel} Portal</p>
             <Badge variant="secondary" className="mt-1 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20">
-              Active Parent
+              Active {roleLabel}
             </Badge>
           </div>
         </div>
