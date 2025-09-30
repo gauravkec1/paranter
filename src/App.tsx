@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthLayout } from "@/components/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { usePreloadComponents, useOptimizedRendering } from "@/hooks/usePerformance";
 
 // Lazy load dashboard components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -156,15 +157,17 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <Route path="/" element={getDashboardForRole()} />
-          <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
-          <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
-          <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
-          <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="transition-all duration-300 ease-in-out">
+          <Routes>
+            <Route path="/" element={getDashboardForRole()} />
+            <Route path="/teacher" element={userProfile.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/" />} />
+            <Route path="/admin" element={userProfile.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
+            <Route path="/finance" element={userProfile.role === 'staff' ? <FinancePortal /> : <Navigate to="/" />} />
+            <Route path="/driver" element={userProfile.role === 'driver' ? <DriverPortal /> : <Navigate to="/" />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </Suspense>
     </BrowserRouter>
   );
