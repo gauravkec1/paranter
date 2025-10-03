@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Grade {
   subject: string;
@@ -35,13 +36,14 @@ const getGradeColor = (grade: string) => {
 };
 
 export const GradesCard = ({ overallGPA, grades, recentExams }: GradesCardProps) => {
+  const { t } = useTranslation();
   return (
     <Card className="card-hover">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
-          <span>Grades & Academic Performance</span>
+          <span>{t('dashboard.gradesAcademic')}</span>
           <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-            <span className="text-sm">View Progress Reports</span>
+            <span className="text-sm">{t('dashboard.viewProgressReports')}</span>
             <ExternalLink className="h-3 w-3 ml-1" />
           </Button>
         </CardTitle>
@@ -51,12 +53,12 @@ export const GradesCard = ({ overallGPA, grades, recentExams }: GradesCardProps)
         {/* Overall GPA */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Overall GPA</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.overallGPA')}</p>
             <p className="text-3xl font-bold text-foreground">{overallGPA}</p>
           </div>
           <div className="flex items-center text-excellent">
             <TrendingUp className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">Improving</span>
+            <span className="text-sm font-medium">{t('dashboard.improving')}</span>
           </div>
         </div>
         
@@ -79,7 +81,7 @@ export const GradesCard = ({ overallGPA, grades, recentExams }: GradesCardProps)
         
         {/* Recent Exam Scores */}
         <div className="pt-2 border-t border-card-border">
-          <h4 className="text-sm font-semibold text-foreground mb-2">Recent Exam Scores</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-2">{t('dashboard.recentExamScores')}</h4>
           <div className="space-y-2">
             {recentExams.map((exam, index) => (
               <div key={index} className="flex items-center justify-between">

@@ -1,75 +1,52 @@
-import { Bell, User, GraduationCap, Shield, Wallet, Bus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { ProfileManagement } from "@/components/ProfileManagement";
+import { useAuth } from "../App";
+import { useTranslation } from "react-i18next";
 
 interface DashboardHeaderProps {
-  studentName: string;
-  parentName: string;
   notificationCount?: number;
 }
 
 export const DashboardHeader = ({ 
-  studentName, 
-  parentName, 
   notificationCount = 0 
 }: DashboardHeaderProps) => {
+  const { userProfile } = useAuth();
+  const { t } = useTranslation();
+
+  if (!userProfile) {
+    return null;
+  }
+
+  const displayName = userProfile.full_name || userProfile.email;
+  const roleKey = `roles.${userProfile.role}` as const;
+  const roleLabel = t(roleKey);
+
   return (
-    <header className="bg-card border-b border-card-border sticky top-0 z-50">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/api/placeholder/40/40" alt={parentName} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {parentName.charAt(0)}
+    <header className="bg-gradient-to-r from-primary via-primary to-primary-glow text-primary-foreground p-4 shadow-xl backdrop-blur-sm border-b border-primary-foreground/10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-14 w-14 ring-3 ring-primary-foreground/20 ring-offset-2 ring-offset-primary shadow-lg">
+            <AvatarImage src={userProfile.avatar_url || "/placeholder-avatar.jpg"} alt={displayName} />
+            <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground font-bold text-lg">
+              {displayName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Dashboard</h2>
-            <p className="text-sm text-muted-foreground">{studentName}'s Progress</p>
+            <h2 className="font-bold text-xl tracking-tight">{displayName}</h2>
+            <p className="text-primary-foreground/90 text-sm font-medium">{roleLabel}</p>
+            <Badge variant="secondary" className="mt-1 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20">
+              {t('dashboard.activeStatus')} {roleLabel}
+            </Badge>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Link to="/teacher">
-            <Button variant="outline" size="sm">
-              <GraduationCap className="h-4 w-4 mr-2" />
-              Teacher Portal
-            </Button>
-          </Link>
-          <Link to="/admin">
-            <Button variant="outline" size="sm" className="text-success border-success hover:bg-success hover:text-success-foreground">
-              <Shield className="h-4 w-4 mr-2" />
-              Admin Portal
-            </Button>
-          </Link>
-          <Link to="/finance">
-            <Button variant="outline" size="sm" className="text-warning border-warning hover:bg-warning hover:text-warning-foreground">
-              <Wallet className="h-4 w-4 mr-2" />
-              Finance Portal
-            </Button>
-          </Link>
-          <Link to="/driver">
-            <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
-              <Bus className="h-4 w-4 mr-2" />
-              Driver Portal
-            </Button>
-          </Link>
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs notification-badge"
-              >
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </Badge>
-            )}
-          </Button>
-          <Button variant="ghost" size="sm">
-            <User className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center space-x-3">
+          <LanguageSwitcher />
+          <NotificationCenter notificationCount={notificationCount} />
+          <ProfileManagement />
         </div>
       </div>
     </header>

@@ -1,0 +1,28 @@
+/* Lovable Badge Positioning Fix */
+.lovable-badge {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  opacity: 0.8 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.lovable-badge:hover {
+  opacity: 1 !important;
+}
+
+/* When modal is open, hide the badge */
+body.modal-open .lovable-badge {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Mobile responsive badge */
+@media (max-width: 768px) {
+  .lovable-badge {
+    bottom: 10px !important;
+    right: 10px !important;
+    transform: scale(0.9) !important;
+  }
+}
