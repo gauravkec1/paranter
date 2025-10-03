@@ -1,205 +1,80 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { DashboardHeader } from "@/components/DashboardHeader";
-import { AttendanceCard } from "@/components/AttendanceCard";
-import { GradesCard } from "@/components/GradesCard";
-import { AnnouncementCard } from "@/components/AnnouncementCard";
-import { QuickActionsCard } from "@/components/QuickActionsCard";
-import { FeesCard } from "@/components/FeesCard";
-import { ExamScheduleCard } from "@/components/ExamScheduleCard";
-import { HomeworkCard } from "@/components/HomeworkCard";
-import { BottomNavigation } from "@/components/BottomNavigation";
-import { toast } from "sonner";
-
-// Mock data for demonstration
-const studentData = {
-  studentName: "Emily Johnson",
-  parentName: "Sarah Johnson",
-  attendance: {
-    overall: 95,
-    subjects: [
-      { name: "Math", percentage: 100, status: 'excellent' as const },
-      { name: "Science", percentage: 80, status: 'good' as const, absences: 1, lastAbsence: "Feb 15" },
-      { name: "English", percentage: 98, status: 'excellent' as const },
-      { name: "History", percentage: 92, status: 'excellent' as const },
-    ],
-    lastUpdated: "Just now"
-  },
-  grades: {
-    gpa: 3.8,
-    subjects: [
-      { subject: "Math", grade: "A-", percentage: 92 },
-      { subject: "Science", grade: "B+", percentage: 88 },
-      { subject: "English", grade: "A", percentage: 95 },
-      { subject: "History", grade: "A-", percentage: 91 },
-    ],
-    recentExams: [
-      { name: "Midterm: Math", percentage: 89 },
-      { name: "Final: Science", percentage: 94 },
-    ]
-  },
-  announcements: [
-    {
-      id: "1",
-      title: "School Closure",
-      description: "Due to inclement weather, school will be closed on Monday, February 18th.",
-      date: "February 16, 2024",
-      type: 'urgent' as const,
-      isNew: true
-    },
-    {
-      id: "2", 
-      title: "Parent-Teacher Conference",
-      description: "Sign up for your parent-teacher conference slots. Available dates: March 1-5.",
-      date: "February 14, 2024",
-      type: 'event' as const
-    },
-    {
-      id: "3",
-      title: "Science Fair Reminder", 
-      description: "Don't forget to submit your science fair projects by February 28th.",
-      date: "February 12, 2024",
-      type: 'info' as const
-    }
-  ],
-  teacher: "Ms. Rodriguez",
-  fees: {
-    totalDue: 15000,
-    nextDueDate: "March 15, 2024",
-    breakdown: [
-      { type: "Tuition Fee", amount: 10000, dueDate: "March 15, 2024", status: 'pending' as const },
-      { type: "Bus Fee", amount: 3000, dueDate: "March 10, 2024", status: 'pending' as const },
-      { type: "Activity Fee", amount: 2000, dueDate: "March 1, 2024", status: 'paid' as const }
-    ]
-  },
-  exams: [
-    { subject: "Mathematics", date: "March 20, 2024", time: "10:00 AM", duration: "2 hours", type: "Mid-term" },
-    { subject: "Science", date: "March 22, 2024", time: "10:00 AM", duration: "1.5 hours", type: "Unit Test" },
-    { subject: "English", date: "March 25, 2024", time: "2:00 PM", duration: "2 hours", type: "Mid-term" }
-  ],
-  assignments: [
-    { subject: "Math", title: "Algebra Problem Set", dueDate: "Feb 20, 2024", status: 'pending' as const, description: "Complete exercises 1-20 from chapter 5" },
-    { subject: "Science", title: "Physics Lab Report", dueDate: "Feb 18, 2024", status: 'overdue' as const, description: "Submit the pendulum experiment report" },
-    { subject: "English", title: "Essay on Shakespeare", dueDate: "Feb 25, 2024", status: 'completed' as const, description: "Write a 500-word essay on Hamlet" },
-    { subject: "History", title: "World War II Timeline", dueDate: "Feb 22, 2024", status: 'pending' as const, description: "Create a detailed timeline of major events" }
-  ]
-};
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { GraduationCap, LogOut, User } from 'lucide-react';
+import AdminDashboard from '@/components/dashboards/AdminDashboard';
+import TeacherDashboard from '@/components/dashboards/TeacherDashboard';
+import ParentDashboard from '@/components/dashboards/ParentDashboard';
+import StaffDashboard from '@/components/dashboards/StaffDashboard';
 
 const Index = () => {
-  const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('home');
+  const { user, profile, signOut } = useAuth();
 
-  const handleQuickAction = (action: string) => {
-    toast.success(`${action} initiated`, {
-      description: `Opening ${action.toLowerCase()} interface...`
-    });
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-destructive text-destructive-foreground';
+      case 'teacher': return 'bg-primary text-primary-foreground';
+      case 'parent': return 'bg-accent text-accent-foreground';
+      case 'staff': return 'bg-warning text-warning-foreground';
+      default: return 'bg-secondary text-secondary-foreground';
+    }
   };
 
-  const handlePayFees = () => {
-    toast.success("Redirecting to payment portal...");
-  };
-
-  const handleViewFeeHistory = () => {
-    toast.success("Opening fee history...");
-  };
-
-  const handleViewAssignment = (assignment: any) => {
-    toast.success(`Opening ${assignment.title}...`);
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'home':
-        return (
-          <div className="space-y-6">
-            <AttendanceCard 
-              overallPercentage={studentData.attendance.overall}
-              subjects={studentData.attendance.subjects}
-              lastUpdated={studentData.attendance.lastUpdated}
-            />
-            
-            <GradesCard 
-              overallGPA={studentData.grades.gpa}
-              grades={studentData.grades.subjects}
-              recentExams={studentData.grades.recentExams}
-            />
-            
-            <FeesCard 
-              totalDue={studentData.fees.totalDue}
-              nextDueDate={studentData.fees.nextDueDate}
-              fees={studentData.fees.breakdown}
-              onPayNow={handlePayFees}
-              onViewHistory={handleViewFeeHistory}
-            />
-            
-            <ExamScheduleCard 
-              upcomingExams={studentData.exams}
-            />
-            
-            <HomeworkCard 
-              assignments={studentData.assignments}
-              onViewAssignment={handleViewAssignment}
-            />
-            
-            <QuickActionsCard 
-              teacherName={studentData.teacher}
-              onMessageTeacher={() => handleQuickAction('Message Teacher')}
-              onCallTeacher={() => handleQuickAction('Call Teacher')}
-              onViewMessages={() => handleQuickAction('View Messages')}
-              onViewGrades={() => handleQuickAction('View Grades')}
-            />
-          </div>
-        );
-      
-      case 'announcements':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-foreground">{t('dashboard.schoolAnnouncements')}</h2>
-            <AnnouncementCard announcements={studentData.announcements} />
-          </div>
-        );
-      
-      case 'messages':
-        return (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.messages')}</h2>
-              <p className="text-muted-foreground">{t('dashboard.comingSoon')} - {t('dashboard.directMessaging')}</p>
-            </div>
-          </div>
-        );
-      
-      case 'profile':
-        return (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.profile')}</h2>
-              <p className="text-muted-foreground">{t('dashboard.profileManagement')}</p>
-            </div>
-          </div>
-        );
-      
-      default:
-        return null;
+  const getWelcomeMessage = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Welcome to your Admin Dashboard';
+      case 'teacher': return 'Welcome to your Teacher Portal';
+      case 'parent': return 'Welcome to your Parent Dashboard';
+      case 'staff': return 'Welcome to your Staff Portal';
+      default: return 'Welcome to Classment';
     }
   };
 
   return (
-    <div className="min-h-screen bg-background-secondary pb-20">
-      <DashboardHeader 
-        notificationCount={3}
-      />
-      
-      <main className="p-4 max-w-md mx-auto">
-        {renderTabContent()}
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-primary rounded-lg">
+              <GraduationCap className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Classment</h1>
+              <p className="text-sm text-muted-foreground">School-Parent Connect</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url || ''} />
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-right">
+                <p className="text-sm font-medium">{profile?.full_name || 'User'}</p>
+                <Badge variant="outline" className={getRoleColor(profile?.role || '')}>
+                  {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1)}
+                </Badge>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          {profile?.role === 'admin' && <AdminDashboard />}
+          {profile?.role === 'teacher' && <TeacherDashboard />}
+          {profile?.role === 'parent' && <ParentDashboard />}
+          {profile?.role === 'staff' && <StaffDashboard />}
+        </div>
       </main>
-      
-      <BottomNavigation 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        messageCount={2}
-        notificationCount={1}
-      />
     </div>
   );
 };
