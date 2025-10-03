@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Phone, FileText, GraduationCap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface QuickActionsCardProps {
   teacherName: string;
@@ -17,12 +18,13 @@ export const QuickActionsCard = ({
   onViewMessages,
   onViewGrades 
 }: QuickActionsCardProps) => {
+  const { t } = useTranslation();
   return (
     <Card className="card-hover">
       <CardHeader className="pb-3">
-        <CardTitle>Quick Contact</CardTitle>
+        <CardTitle>{t('dashboard.quickContact')}</CardTitle>
         <p className="text-sm text-muted-foreground">{teacherName}</p>
-        <p className="text-xs text-muted-foreground">Directly message or call</p>
+        <p className="text-xs text-muted-foreground">{t('dashboard.directlyMessageOrCall')}</p>
       </CardHeader>
       
       <CardContent className="space-y-3">
@@ -34,7 +36,7 @@ export const QuickActionsCard = ({
             onClick={onMessageTeacher}
           >
             <MessageCircle className="h-4 w-4 mr-2" />
-            Message
+            {t('dashboard.message')}
           </Button>
           <Button 
             variant="outline" 
@@ -43,12 +45,12 @@ export const QuickActionsCard = ({
             onClick={onCallTeacher}
           >
             <Phone className="h-4 w-4 mr-2" />
-            Call
+            {t('dashboard.call')}
           </Button>
         </div>
         
         <div className="pt-2 border-t border-card-border">
-          <h4 className="text-sm font-semibold text-foreground mb-2">Quick Actions</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-2">{t('dashboard.quickActions')}</h4>
           <div className="space-y-2">
             <Button 
               variant="ghost" 
@@ -57,7 +59,7 @@ export const QuickActionsCard = ({
               onClick={onViewMessages}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
-              View Messages
+              {t('dashboard.viewMessages')}
             </Button>
             <Button 
               variant="ghost" 
@@ -66,7 +68,7 @@ export const QuickActionsCard = ({
               onClick={onViewGrades}
             >
               <GraduationCap className="h-4 w-4 mr-2" />
-              View Grades
+              {t('dashboard.viewGrades')}
             </Button>
           </div>
         </div>

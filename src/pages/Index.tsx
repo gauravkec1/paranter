@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { AttendanceCard } from "@/components/AttendanceCard";
 import { GradesCard } from "@/components/GradesCard";
 import { AnnouncementCard } from "@/components/AnnouncementCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { FeesCard } from "@/components/FeesCard";
+import { ExamScheduleCard } from "@/components/ExamScheduleCard";
+import { HomeworkCard } from "@/components/HomeworkCard";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { toast } from "sonner";
 
@@ -58,16 +62,49 @@ const studentData = {
       type: 'info' as const
     }
   ],
-  teacher: "Ms. Rodriguez"
+  teacher: "Ms. Rodriguez",
+  fees: {
+    totalDue: 15000,
+    nextDueDate: "March 15, 2024",
+    breakdown: [
+      { type: "Tuition Fee", amount: 10000, dueDate: "March 15, 2024", status: 'pending' as const },
+      { type: "Bus Fee", amount: 3000, dueDate: "March 10, 2024", status: 'pending' as const },
+      { type: "Activity Fee", amount: 2000, dueDate: "March 1, 2024", status: 'paid' as const }
+    ]
+  },
+  exams: [
+    { subject: "Mathematics", date: "March 20, 2024", time: "10:00 AM", duration: "2 hours", type: "Mid-term" },
+    { subject: "Science", date: "March 22, 2024", time: "10:00 AM", duration: "1.5 hours", type: "Unit Test" },
+    { subject: "English", date: "March 25, 2024", time: "2:00 PM", duration: "2 hours", type: "Mid-term" }
+  ],
+  assignments: [
+    { subject: "Math", title: "Algebra Problem Set", dueDate: "Feb 20, 2024", status: 'pending' as const, description: "Complete exercises 1-20 from chapter 5" },
+    { subject: "Science", title: "Physics Lab Report", dueDate: "Feb 18, 2024", status: 'overdue' as const, description: "Submit the pendulum experiment report" },
+    { subject: "English", title: "Essay on Shakespeare", dueDate: "Feb 25, 2024", status: 'completed' as const, description: "Write a 500-word essay on Hamlet" },
+    { subject: "History", title: "World War II Timeline", dueDate: "Feb 22, 2024", status: 'pending' as const, description: "Create a detailed timeline of major events" }
+  ]
 };
 
 const Index = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('home');
 
   const handleQuickAction = (action: string) => {
     toast.success(`${action} initiated`, {
       description: `Opening ${action.toLowerCase()} interface...`
     });
+  };
+
+  const handlePayFees = () => {
+    toast.success("Redirecting to payment portal...");
+  };
+
+  const handleViewFeeHistory = () => {
+    toast.success("Opening fee history...");
+  };
+
+  const handleViewAssignment = (assignment: any) => {
+    toast.success(`Opening ${assignment.title}...`);
   };
 
   const renderTabContent = () => {
@@ -87,6 +124,23 @@ const Index = () => {
               recentExams={studentData.grades.recentExams}
             />
             
+            <FeesCard 
+              totalDue={studentData.fees.totalDue}
+              nextDueDate={studentData.fees.nextDueDate}
+              fees={studentData.fees.breakdown}
+              onPayNow={handlePayFees}
+              onViewHistory={handleViewFeeHistory}
+            />
+            
+            <ExamScheduleCard 
+              upcomingExams={studentData.exams}
+            />
+            
+            <HomeworkCard 
+              assignments={studentData.assignments}
+              onViewAssignment={handleViewAssignment}
+            />
+            
             <QuickActionsCard 
               teacherName={studentData.teacher}
               onMessageTeacher={() => handleQuickAction('Message Teacher')}
@@ -100,7 +154,7 @@ const Index = () => {
       case 'announcements':
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-foreground">School Announcements</h2>
+            <h2 className="text-xl font-bold text-foreground">{t('dashboard.schoolAnnouncements')}</h2>
             <AnnouncementCard announcements={studentData.announcements} />
           </div>
         );
@@ -109,8 +163,8 @@ const Index = () => {
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Messages</h2>
-              <p className="text-muted-foreground">Coming soon - Direct messaging with teachers</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.messages')}</h2>
+              <p className="text-muted-foreground">{t('dashboard.comingSoon')} - {t('dashboard.directMessaging')}</p>
             </div>
           </div>
         );
@@ -119,8 +173,8 @@ const Index = () => {
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Profile</h2>
-              <p className="text-muted-foreground">Student & parent profile management</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('dashboard.profile')}</h2>
+              <p className="text-muted-foreground">{t('dashboard.profileManagement')}</p>
             </div>
           </div>
         );
@@ -133,8 +187,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background-secondary pb-20">
       <DashboardHeader 
-        studentName={studentData.studentName}
-        parentName={studentData.parentName}
         notificationCount={3}
       />
       

@@ -1,0 +1,65 @@
+/* Additional Performance & Modal Fixes */
+
+/* Ensure proper modal behavior */
+.modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* High z-index for all modals */
+[data-radix-dialog-overlay] {
+  z-index: 100 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 101 !important;
+}
+
+/* Dropdown fixes */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+[role="menu"], [role="listbox"], [role="dialog"] {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  z-index: 50 !important;
+}
+
+/* Dark mode dropdown fixes */
+[data-theme="dark"] [role="menu"], 
+[data-theme="dark"] [role="listbox"], 
+[data-theme="dark"] [role="dialog"] {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+}
+
+/* Performance optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fast transitions only */
+.fast-transition {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Critical above fold optimization */
+.critical-above-fold {
+  contain: layout style paint;
+  content-visibility: auto;
+}
